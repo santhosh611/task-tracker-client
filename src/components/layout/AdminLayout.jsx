@@ -81,11 +81,6 @@ const AdminLayout = () => {
       label: 'Tasks'
     },
     {
-      label: 'Custom Task Approval',
-      icon: <FaTasks />,
-      path: '/admin/custom-tasks'
-    },
-    {
       to: '/admin/food-requests',
       icon: <FaPizzaSlice />, 
       label: 'Food Requests'
