@@ -3,7 +3,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: 'https://task-tracker-backend-2jqf.onrender.com/api',
-  withCredentials: true, // If you need cookies for CORS, otherwise can remove
+  withCredentials: true, // If you need cookies for CORS, otherwise can remove
 });
 
 // Request interceptor: adds token from localStorage

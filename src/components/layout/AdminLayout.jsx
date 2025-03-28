@@ -10,6 +10,7 @@ import {
   FaComments, 
   FaTags,
   FaPizzaSlice,
+  FaClipboardList,
 
 } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
@@ -95,6 +96,11 @@ const AdminLayout = () => {
       icon: <FaTags />,
       label: 'Topics'
     },
+    {
+      to: '/admin/custom-tasks',
+      icon: <FaClipboardList />,
+      label: 'Custom Tasks'
+    },    
     {
       to: '/admin/leaves',
       icon: <FaCalendarAlt />,

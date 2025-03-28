@@ -9,6 +9,7 @@ import LeaveManagement from '../../components/admin/LeaveManagement';
 import TopicManagement from '../../components/admin/TopicManager';
 import DepartmentManagement from '../../components/admin/DepartmentManagement';
 import FoodRequestManagement from '../../components/admin/FoodRequestManagement';
+import CustomTasks from '../../components/admin/CustomTasks';
 
 const AdminDashboard = () => {
   return (
@@ -22,6 +23,7 @@ const AdminDashboard = () => {
       <Route path="comments" element={<CommentManagement />} />
       <Route path="departments" element={<DepartmentManagement />} />
       <Route path="food-requests" element={<FoodRequestManagement />} /> 
+      <Route path="custom-tasks" element={<CustomTasks />} />
       {/* Redirect to dashboard for unknown routes */}
       <Route path="*" element={<Navigate to="/admin" replace />} />
     </Routes>

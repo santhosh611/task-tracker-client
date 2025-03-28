@@ -1,78 +1,46 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { checkAndInitAdmin } from '../services/authService';
+import { FaChartLine, FaTasks, FaClock } from 'react-icons/fa';
 
 const Home = () => {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const initializeAdmin = async () => {
-      try {
-        await checkAndInitAdmin();
-      } catch (error) {
-        console.error('Admin initialization error:', error);
-      }
-    };
-
-    initializeAdmin();
-  }, []);
-
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl w-full space-y-8 text-center">
-        <h1 className="text-4xl font-extrabold text-gray-900">Task Tracker</h1>
-        <p className="text-xl text-gray-600">Boost Productivity and Manage Tasks Efficiently</p>
-        
-        <div className="grid md:grid-cols-3 gap-6 mt-10">
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-bold mb-4 flex items-center justify-center">
-              <svg className="w-8 h-8 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-              </svg>
-              Track Progress
-            </h2>
-            <p className="text-gray-600 text-center">
-              Monitor worker performance and productivity with real-time tracking.
-            </p>
-          </div>
-          
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-bold mb-4 flex items-center justify-center">
-              <svg className="w-8 h-8 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-              Complete Tasks
-            </h2>
-            <p className="text-gray-600 text-center">
-              Organize and complete tasks efficiently with our streamlined system.
-            </p>
-          </div>
-          
-          <div className="bg-white p-6 rounded-lg shadow-md">
-            <h2 className="text-xl font-bold mb-4 flex items-center justify-center">
-              <svg className="w-8 h-8 mr-2" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-              </svg>
-              Manage Time
-            </h2>
-            <p className="text-gray-600 text-center">
-              Optimize time management and improve overall productivity.
-            </p>
-          </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-900 to-purple-900 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Floating Shapes */}
+      <div className="absolute top-0 left-0 w-72 h-72 bg-blue-500/20 rounded-full blur-3xl animate-float"></div>
+      <div className="absolute bottom-0 right-0 w-72 h-72 bg-purple-500/20 rounded-full blur-3xl animate-float"></div>
+
+      <div className="relative z-10 max-w-5xl w-full bg-white/10 backdrop-blur-lg border border-white/20 rounded-3xl shadow-2xl p-12">
+        <h1 className="text-5xl font-bold text-center text-white mb-6">Task Tracker</h1>
+        <p className="text-xl text-center text-white/80 mb-12">
+          Empowering Productivity Through Smart Management
+        </p>
+
+        <div className="grid md:grid-cols-3 gap-6 mb-12">
+          {[
+            { icon: FaChartLine, title: 'Track Progress', desc: 'Real-time performance monitoring' },
+            { icon: FaTasks, title: 'Manage Tasks', desc: 'Efficient task organization' },
+            { icon: FaClock, title: 'Optimize Time', desc: 'Maximize workplace efficiency' }
+          ].map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="bg-white/10 backdrop-blur-md rounded-xl p-6 text-center">
+              <Icon className="mx-auto text-4xl text-white/80 mb-4" />
+              <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
+              <p className="text-white/60">{desc}</p>
+            </div>
+          ))}
         </div>
-        
-        <div className="flex justify-center space-x-4 mt-10">
+
+        <div className="flex justify-center space-x-6">
           <button 
             onClick={() => navigate('/admin/login')}
-            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 transform hover:scale-105"
+            className="bg-blue-500 text-white px-8 py-3 rounded-full hover:bg-blue-600 transition transform hover:scale-105"
           >
             Admin Login
           </button>
-          
           <button 
             onClick={() => navigate('/worker/login')}
-            className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg transition duration-300 transform hover:scale-105"
+            className="bg-purple-500 text-white px-8 py-3 rounded-full hover:bg-purple-600 transition transform hover:scale-105"
           >
             Worker Login
           </button>

@@ -8,6 +8,7 @@ import TaskForm from './TaskForm';
 import Scoreboard from './Scoreboard';
 import Card from '../common/Card';
 import Spinner from '../common/Spinner';
+import CustomTaskForm from './CustomTaskForm';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -65,6 +66,7 @@ const Dashboard = () => {
   
   return (
     <div>
+       <CustomTaskForm />
       <h1 className="text-2xl font-bold mb-6">Worker Dashboard</h1>
       
       <Card className="mb-6">

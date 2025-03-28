@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
-import { FaPlus, FaTrash } from 'react-icons/fa';
-import { getDepartments, createDepartment, deleteDepartment } from '../../services/departmentService';
+import { FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
+import { getDepartments, createDepartment, deleteDepartment,updateDepartment } from '../../services/departmentService';
 import Card from '../common/Card';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
@@ -14,6 +14,9 @@ const DepartmentManagement = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState(null);
+
 
   const loadDepartments = async () => {
     setIsLoading(true);
@@ -82,6 +85,42 @@ const DepartmentManagement = () => {
     }
   };
 
+
+  const handleEditDepartment = async (e) => {
+    e.preventDefault();
+    
+    if (!editingDepartment) return;
+    
+    const trimmedName = editingDepartment.name.trim();
+    if (!trimmedName) {
+      toast.error('Department name cannot be empty');
+      return;
+    }
+    
+    try {
+      // Update department
+      const updatedDepartment = await updateDepartment(editingDepartment._id, { 
+        name: trimmedName 
+      });
+      
+      // Update local state
+      setDepartments(prev => 
+        prev.map(dept => 
+          dept._id === updatedDepartment._id ? updatedDepartment : dept
+        )
+      );
+      
+      // Reset and close modal
+      setEditingDepartment(null);
+      setIsEditModalOpen(false);
+      
+      toast.success('Department updated successfully');
+    } catch (error) {
+      console.error('Edit Department Error:', error);
+      toast.error(error.message || 'Failed to update department');
+    }
+  };
+
   const handleDeleteDepartment = async () => {
     if (!selectedDepartment) return;
     
@@ -117,7 +156,7 @@ const DepartmentManagement = () => {
           <FaPlus className="mr-2 inline" /> Add Department
         </Button>
       </div>
-
+  
       <Card>
         {isLoading ? (
           <div className="flex justify-center py-8">
@@ -131,32 +170,43 @@ const DepartmentManagement = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {departments.map(department => (
               <div 
-                key={department.key || department._id || Math.random().toString(36).substr(2, 9)} 
+                key={department._id} 
                 className="bg-white border rounded-lg p-4 flex justify-between items-center"
               >
                 <div>
-                  <h3 className="text-lg font-medium capitalize">
-                    {department.name}
-                  </h3>
+                <h3 className="text-lg font-medium">
+                {department.name}
+                </h3>
                   <p className="text-sm text-gray-500">
                     {department.workerCount || 0} Worker{(department.workerCount || 0) !== 1 ? 's' : ''}
                   </p>
                 </div>
-                <button
-                  className="text-red-500 hover:text-red-700"
-                  onClick={() => {
-                    setSelectedDepartment(department);
-                    setIsDeleteModalOpen(true);
-                  }}
-                >
-                  <FaTrash />
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    className="text-blue-500 hover:text-blue-700 mr-2"
+                    onClick={() => {
+                      setEditingDepartment(department);
+                      setIsEditModalOpen(true);
+                    }}
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    className="text-red-500 hover:text-red-700"
+                    onClick={() => {
+                      setSelectedDepartment(department);
+                      setIsDeleteModalOpen(true);
+                    }}
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         )}
       </Card>
-
+  
       {/* Add Department Modal */}
       <Modal 
         isOpen={isAddModalOpen} 
@@ -194,7 +244,54 @@ const DepartmentManagement = () => {
           </div>
         </form>
       </Modal>
-
+  
+      {/* Edit Department Modal */}
+      <Modal 
+        isOpen={isEditModalOpen} 
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingDepartment(null);
+        }} 
+        title="Edit Department"
+      >
+        <form onSubmit={handleEditDepartment}>
+          <div className="form-group mb-4">
+            <label className="form-label">Department Name</label>
+            <input
+              type="text"
+              className="form-input"
+              value={editingDepartment?.name || ''}
+              onChange={e => setEditingDepartment(prev => ({
+                ...prev,
+                name: e.target.value
+              }))}
+              placeholder="Enter department name"
+              required
+              maxLength={50}
+            />
+          </div>
+          <div className="flex justify-end mt-6 space-x-2">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setEditingDepartment(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="submit" 
+              variant="primary" 
+              disabled={!editingDepartment?.name?.trim()}
+            >
+              Update Department
+            </Button>
+          </div>
+        </form>
+      </Modal>
+  
       {/* Delete Department Modal */}
       <Modal 
         isOpen={isDeleteModalOpen} 
@@ -234,6 +331,5 @@ const DepartmentManagement = () => {
       </Modal>
     </div>
   );
-};
-
+}
 export default DepartmentManagement;

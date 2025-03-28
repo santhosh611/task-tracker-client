@@ -21,6 +21,7 @@ import LeaveManagement from './components/admin/LeaveManagement';
 import CommentManagement from './components/admin/CommentManagement';
 import TopicManagement from './components/admin/TopicManager';
 import FoodRequestManagement from './components/admin/FoodRequestManagement';
+import CustomTasks from './components/admin/CustomTasks';
 // Protected route component
 import PrivateRoute from './components/common/PrivateRoute';
 
@@ -45,6 +46,7 @@ function App() {
           <Route path="comments" element={<CommentManagement />} />
           <Route path="topics" element={<TopicManagement />} />
           <Route path="food-requests" element={<FoodRequestManagement />} />
+          <Route path="custom-tasks" element={<CustomTasks />} />
           {/* Catch-all route for unknown admin paths */}
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Route>

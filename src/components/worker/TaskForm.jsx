@@ -41,39 +41,42 @@ const TaskForm = ({ topics, columns, onTaskSubmit }) => {
   };
   
   // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+// Handle form submission
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (!isFormValid()) {
+    alert('Please enter at least one value or select a topic.');
+    return;
+  }
+  
+  setIsSubmitting(true);
+  
+  try {
+    // Make sure we always send a valid data object even if it's empty
+    // This prevents the server from rejecting our request
+    const taskData = {
+      data: Object.keys(formData).length === 0 ? { placeholder: 0 } : formData,
+      topics: selectedTopics
+    };
     
-    if (!isFormValid()) {
-      alert('Please enter at least one value or select a topic.');
-      return;
+    const newTask = await createTask(taskData);
+    
+    // Reset form
+    setFormData({});
+    setSelectedTopics([]);
+    
+    // Notify parent component
+    if (onTaskSubmit) {
+      onTaskSubmit(newTask);
     }
-    
-    setIsSubmitting(true);
-    
-    try {
-      const taskData = {
-        data: formData,
-        topics: selectedTopics
-      };
-      
-      const newTask = await createTask(taskData);
-      
-      // Reset form
-      setFormData({});
-      setSelectedTopics([]);
-      
-      // Notify parent component
-      if (onTaskSubmit) {
-        onTaskSubmit(newTask);
-      }
-    } catch (error) {
-      console.error('Failed to submit task:', error);
-      alert(error.message || 'Failed to submit task. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  } catch (error) {
+    console.error('Failed to submit task:', error);
+    alert(error.message || 'Failed to submit task. Please try again.');
+  } finally {
+    setIsSubmitting(false);
+  }
+};
   
   return (
     <div>

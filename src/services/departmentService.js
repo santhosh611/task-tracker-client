@@ -7,10 +7,10 @@ export const createDepartment = async (departmentData) => {
       throw new Error('Department name must be at least 2 characters long');
     }
 
-    const normalizedName = departmentData.name.trim().toLowerCase();
+    const trimmedName = departmentData.name.trim(); 
     const token = getAuthToken();
 
-    const response = await api.post('/departments', { name: normalizedName }, {
+    const response = await api.post('/departments', { name: trimmedName }, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -62,5 +62,44 @@ export const deleteDepartment = async (id) => {
     }
 
     throw error;
+  }
+};
+
+export const updateDepartment = async (id, departmentData) => {
+  try {
+    if (!departmentData.name || departmentData.name.trim().length < 2) {
+      throw new Error('Department name must be at least 2 characters long');
+    }
+
+    const trimmedName = departmentData.name.trim(); // Remove .toLowerCase()
+    const token = getAuthToken();
+
+    const response = await api.put(`/departments/${id}`, { name: trimmedName }, {
+      headers: { 
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+    });
+
+    console.log('Department Update Response:', response.data);
+
+    return response.data;
+  } catch (error) {
+    console.error('Department Update Error:', {
+      message: error.message,
+      response: error.response ? error.response.data : 'No response',
+      request: error.request ? 'Request exists' : 'No request',
+    });
+
+    if (error.response) {
+      console.error('Server Error Response:', error.response.data);
+      throw new Error(error.response.data.message || 'Failed to update department');
+    } else if (error.request) { 
+      console.error('No Response Received:', error.request);
+      throw new Error('No response from server. Please check your connection.');
+    } else {
+      console.error('Error Setting Up Request:', error.message);
+      throw error;
+    }
   }
 };
