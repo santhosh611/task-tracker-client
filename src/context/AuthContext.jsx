@@ -1,6 +1,10 @@
-// src/context/AuthContext.jsx
-import { createContext, useState, useEffect } from 'react';
-import { login as loginService, logout as logoutService, getCurrentUser } from '../services/authService';
+import { createContext, useState, useEffect, useCallback } from 'react';
+import { 
+  login as loginService, 
+  logout as logoutService, 
+  getCurrentUser,
+  refreshTokenService 
+} from '../services/authService';
 
 export const AuthContext = createContext();
 
@@ -8,9 +12,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // On mount, check if user exists in localStorage
   useEffect(() => {
-    const loadUser = () => {
+    const loadUser = async () => {
       try {
         const userData = getCurrentUser();
         if (userData) {
@@ -40,16 +43,37 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     logoutService();
     setUser(null);
-  };
+  }, []);
+
+  // New token refresh method
+  const refreshToken = useCallback(async () => {
+    try {
+      const { token, user: updatedUser } = await refreshTokenService();
+      
+      // Update user context
+      setUser(prevUser => ({
+        ...prevUser,
+        ...updatedUser,
+        token
+      }));
+      
+      return token;
+    } catch (error) {
+      console.error('Token refresh failed', error);
+      logout();
+      throw error;
+    }
+  }, [logout]);
 
   const value = {
     user,
     loading,
     login,
     logout,
+    refreshToken,
     isAuthenticated: !!user,
     isAdmin: user?.role === 'admin',
     isWorker: user?.role === 'worker',

@@ -1,5 +1,6 @@
 import api from '../hooks/useAxios';
 import { getAuthToken } from '../utils/authUtils';
+
 // Create new task
 export const createTask = async (taskData) => {
   try {
@@ -63,7 +64,6 @@ export const resetAllTasks = async () => {
     throw error.response ? error.response.data : new Error('Failed to reset tasks');
   }
 };
-
 
 export const submitCustomTask = async (customTaskData) => {
   try {

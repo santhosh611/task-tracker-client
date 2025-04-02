@@ -11,8 +11,10 @@ import {
 import Card from '../common/Card';
 import Button from '../common/Button';
 import Spinner from '../common/Spinner';
+import { useAuth } from '../../hooks/useAuth'; // Import auth context
 
 const Comments = () => {
+  const { logout } = useAuth(); // Get logout function
   const [comments, setComments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [commentText, setCommentText] = useState('');
@@ -20,27 +22,31 @@ const Comments = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [replyTexts, setReplyTexts] = useState({});
   
-  
   // Load comments
   useEffect(() => {
-
-    const fetchComments = async () => {
-      try {
-        setIsLoading(true);
-        const fetchedComments = await getMyComments();
-        setComments(fetchedComments);
-      } catch (error) {
-        console.error('Failed to fetch comments:', error);
-        // Handle error (show toast, set error state, etc.)
-      } finally {
-        setIsLoading(false);
-      }
-    };
     fetchComments();
   }, []);
   
-
-
+  const fetchComments = async () => {
+    try {
+      setIsLoading(true);
+      const fetchedComments = await getMyComments();
+      setComments(fetchedComments);
+    } catch (error) {
+      console.error('Failed to fetch comments:', error);
+      
+      // Handle auth errors
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        toast.error('Your session has expired. Please log in again.');
+        setTimeout(() => logout(), 2000);
+        return;
+      }
+      
+      toast.error('Failed to load comments');
+    } finally {
+      setIsLoading(false);
+    }
+  };
   
   // Handle comment submission
   const handleSubmitComment = async (e) => {
@@ -65,9 +71,17 @@ const Comments = () => {
       // Reset form
       setCommentText('');
       
-      
       toast.success('Comment added successfully!');
-    }  catch (error) {
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+      
+      // Handle auth errors
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        toast.error('Your session has expired. Please log in again.');
+        setTimeout(() => logout(), 2000);
+        return;
+      }
+      
       toast.error(error.message || 'Failed to add comment');
     } finally {
       setIsSubmitting(false);
@@ -99,6 +113,15 @@ const Comments = () => {
       
       toast.success('Reply added successfully!');
     } catch (error) {
+      console.error('Failed to add reply:', error);
+      
+      // Handle auth errors
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        toast.error('Your session has expired. Please log in again.');
+        setTimeout(() => logout(), 2000);
+        return;
+      }
+      
       toast.error(error.message || 'Failed to add reply');
     }
   };
@@ -212,26 +235,26 @@ const Comments = () => {
                     </div>
                   )}
                   
-                  {/* Replies */}
+                  {/* Replies Section */}
                   {comment.replies && comment.replies.length > 0 && (
-                    <div className="mt-4 space-y-3">
-                      <h4 className="text-sm font-medium text-gray-700">Replies:</h4>
+                    <div className="mt-3 mb-3 space-y-2">
+                      <p className="text-sm font-medium text-gray-700">Replies:</p>
                       
                       {comment.replies.map((reply, index) => (
-  <div 
-    key={`${comment._id}-reply-${index}`}
-    className={`p-3 rounded-md ${
-      reply.isAdminReply 
-        ? 'bg-blue-50 border-l-4 border-blue-400'
-        : 'bg-gray-50'
-    } ${reply.isNew ? 'border-2 border-blue-300' : ''}`}
-  >
+                        <div 
+                          key={`${comment._id}-reply-${index}`}
+                          className={`p-3 rounded-md ${
+                            reply.isAdminReply 
+                              ? 'bg-blue-50 border-l-4 border-blue-400'
+                              : 'bg-gray-100'
+                          }`}
+                        >
                           <div className="flex justify-between items-center mb-1">
                             <p className="text-sm font-medium">
-                              {reply.isAdminReply ? 'Admin' : 'You'}
+                              {reply.isAdminReply ? 'Admin' : comment.worker?.name || 'Worker'}
                             </p>
                             <span className="text-xs text-gray-500">
-                              {formatDate(reply.createdAt)}
+                              {reply.createdAt ? formatDate(reply.createdAt) : 'Recent'}
                             </span>
                           </div>
                           <p className="text-sm">{reply.text}</p>

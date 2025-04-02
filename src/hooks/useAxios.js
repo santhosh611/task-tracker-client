@@ -8,20 +8,29 @@ const api = axios.create({
     'Content-Type': 'application/json' 
   }
 });
+
 export const useAxios = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshToken } = useAuth();
 
   useEffect(() => {
     const requestInterceptor = api.interceptors.request.use(
-      (config) => {
+      async (config) => {
         // Prioritize context token, fallback to localStorage
-        const token = user?.token || localStorage.getItem('token');
+        let token = user?.token || localStorage.getItem('token');
+        
+        // Check if token needs refresh
+        if (token && isTokenExpired(token)) {
+          try {
+            token = await refreshToken();
+          } catch (error) {
+            console.warn('Token refresh failed');
+            logout();
+            return config;
+          }
+        }
         
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
-          console.log('Request Token:', token);
-        } else {
-          console.warn('No token available for request');
         }
         
         return config;
@@ -31,18 +40,21 @@ export const useAxios = () => {
 
     const responseInterceptor = api.interceptors.response.use(
       (response) => response,
-      (error) => {
-        // Log detailed error information
-        console.error('API Error:', error);
+      async (error) => {
+        const originalRequest = error.config;
         
-        if (error.response) {
-          console.error('Error Response:', error.response.data);
-          console.error('Error Status:', error.response.status);
+        // Handle 401 errors with token refresh attempt
+        if (error.response?.status === 401 && !originalRequest._retry) {
+          originalRequest._retry = true;
           
-          // Automatically logout on 401 (Unauthorized) errors
-          if (error.response.status === 401) {
-            console.warn('Unauthorized: Logging out');
+          try {
+            const newToken = await refreshToken();
+            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+            return api(originalRequest);
+          } catch (refreshError) {
+            console.warn('Token refresh failed during request');
             logout();
+            return Promise.reject(refreshError);
           }
         }
         
@@ -54,9 +66,22 @@ export const useAxios = () => {
       api.interceptors.request.eject(requestInterceptor);
       api.interceptors.response.eject(responseInterceptor);
     };
-  }, [user, logout]);
+  }, [user, logout, refreshToken]);
 
   return api;
+};
+
+// Utility to check if token is expired
+const isTokenExpired = (token) => {
+  try {
+    const decoded = jwt.decode(token);
+    if (!decoded || !decoded.exp) return true;
+    
+    // Check if token is close to expiration (within 5 minutes)
+    return Date.now() >= (decoded.exp - 5 * 60) * 1000;
+  } catch (error) {
+    return true;
+  }
 };
 
 export default api;

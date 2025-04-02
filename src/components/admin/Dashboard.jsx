@@ -50,7 +50,7 @@ const Dashboard = () => {
           getAllComments(),
         ]);
 
-        // Defensive check: ensure leavesData is an array
+        // Defensive check: ensure data is an array
         const workersData = Array.isArray(workersDataRaw) ? workersDataRaw : [];
         const tasksData = Array.isArray(tasksDataRaw) ? tasksDataRaw : [];
         const topicsData = Array.isArray(topicsDataRaw) ? topicsDataRaw : [];
@@ -58,47 +58,47 @@ const Dashboard = () => {
         const leavesData = Array.isArray(leavesDataRaw) ? leavesDataRaw : [];
         const commentsData = Array.isArray(commentsDataRaw) ? commentsDataRaw : [];
 
-       // Calculate stats for leaves and comments
-      const pendingLeaves = leavesData.filter(leave => leave.status === 'Pending');
-      const approvedLeaves = leavesData.filter(leave => leave.status === 'Approved');
-      const rejectedLeaves = leavesData.filter(leave => leave.status === 'Rejected');
-      const unreadComments = commentsData.filter(comment => 
-        comment.isNew || comment.replies?.some(reply => reply.isNew)
-      );
+        // Calculate stats for leaves and comments
+        const pendingLeaves = leavesData.filter(leave => leave.status === 'Pending');
+        const approvedLeaves = leavesData.filter(leave => leave.status === 'Approved');
+        const rejectedLeaves = leavesData.filter(leave => leave.status === 'Rejected');
+        const unreadComments = commentsData.filter(comment => 
+          comment.isNew || comment.replies?.some(reply => reply.isNew)
+        );
 
+        // Get top 5 workers by points
+        const sortedWorkers = [...workersData]
+          .sort((a, b) => b.totalPoints - a.totalPoints)
+          .slice(0, 5);
 
-      // Get top 5 workers by points
-      const sortedWorkers = [...workersData]
-        .sort((a, b) => b.totalPoints - a.totalPoints)
-        .slice(0, 5);
+        setStats({
+          workers: workersData.length,
+          tasks: tasksData.length,
+          topics: topicsData.length,
+          columns: columnsData.length,
+          leaves: {
+            total: leavesData.length,
+            pending: pendingLeaves.length,
+            approved: approvedLeaves.length,
+            rejected: rejectedLeaves.length,
+          },
+          comments: {
+            total: commentsData.length,
+            unread: unreadComments.length,
+          },
+        });
 
-      setStats({
-        workers: workersData.length,
-        tasks: tasksData.length,
-        topics: topicsData.length,
-        columns: columnsData.length,
-        leaves: {
-          total: leavesData.length,
-          pending: pendingLeaves.length,
-          approved: approvedLeaves.length,
-          rejected: rejectedLeaves.length,
-        },
-        comments: {
-          total: commentsData.length,
-          unread: unreadComments.length,
-        },
-      });
+        setTopWorkers(sortedWorkers);
+      } catch (error) {
+        console.error("Error loading dashboard data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-      setTopWorkers(sortedWorkers);
-    } catch (error) {
-      console.error("Error loading dashboard data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  loadDashboardData();
-}, []);
+    // Call the function here, inside the useEffect
+    loadDashboardData();
+  }, []); // Empty dependency array means this runs once on mount
 
   if (isLoading) {
     return (

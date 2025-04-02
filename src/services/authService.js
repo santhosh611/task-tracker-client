@@ -67,10 +67,33 @@ export const checkAndInitAdmin = async () => {
   }
 };
 
+export const refreshTokenService = async () => {
+  try {
+    const currentToken = localStorage.getItem('token');
+    
+    if (!currentToken) {
+      throw new Error('No token available');
+    }
+    
+    const response = await api.post('/auth/refresh', { token: currentToken });
+    
+    // Update local storage with new token and user data
+    const { token, ...user } = response.data;
+    
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user)); 
+    
+    return { token, user };
+  } catch (error) {
+    console.error('Token refresh failed', error);
+    throw error;
+  }
+};
 export default {
   registerAdmin,
   login,
   logout,
   getCurrentUser,
-  checkAndInitAdmin
+  checkAndInitAdmin,
+  refreshTokenService
 };

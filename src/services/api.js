@@ -5,16 +5,17 @@ const api = axios.create({
   baseURL: 'https://task-tracker-backend-2jqf.onrender.com/api',
   withCredentials: true, // If you need cookies for CORS, otherwise can remove
 });
-
+// Add this to a page to check the token
+console.log("Token exists:", !!localStorage.getItem('token'));
 // Request interceptor: adds token from localStorage
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    console.log('Token being sent:', token); // Debug log
     if (token) {
+      console.log("Adding token to request");
       config.headers.Authorization = `Bearer ${token}`;
     } else {
-      console.error('No token found for request');
+      console.log("No token found in localStorage");
     }
     return config;
   },
