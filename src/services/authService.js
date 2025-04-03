@@ -1,6 +1,16 @@
 // src/services/authService.js
 import api from '../hooks/useAxios';
 
+export const subdomainAvailable = async (formData) => {
+  try {
+    const response = await api.post('/auth/admin/subdomain-available', formData);
+    return response.data;
+  } catch (error) {
+    console.error("Subdomain not available", error);
+    throw error.response?.data || new Error('Failed to check subdomain availability');
+  }
+};
+
 export const registerAdmin = async (userData) => {
   try {
     const response = await api.post('/auth/admin/register', userData);

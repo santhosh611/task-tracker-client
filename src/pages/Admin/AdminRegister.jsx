@@ -1,19 +1,22 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { registerAdmin } from '../../services/authService';
+import { registerAdmin, subdomainAvailable } from '../../services/authService';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
+import { FaLink } from "react-icons/fa6";
 
 const AdminRegister = () => {
   const [formData, setFormData] = useState({
     username: '',
+    subdomain: '',
     email: '',
     password: '',
     confirmPassword: ''
   });
   const [isLoading, setIsLoading] = useState(false);
   const [backgroundShapes, setBackgroundShapes] = useState([]);
+  const [domainAvailable, setDomainAvailable] = useState(true);
   const navigate = useNavigate();
 
   // Animated background shapes
@@ -39,7 +42,7 @@ const AdminRegister = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (formData.password !== formData.confirmPassword) {
       toast.error('Passwords do not match');
       return;
@@ -54,6 +57,28 @@ const AdminRegister = () => {
       toast.error(error.response?.data?.message || 'Registration failed');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSubdomainChange = async (e) => {
+    const { name, value } = e.target;
+    const formattedValue = value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+    setFormData(prev => ({ ...prev, [name]: formattedValue }));
+
+    if (value.length <= 4) {
+      setDomainAvailable(false);
+      return;
+    }
+
+    try {
+      await subdomainAvailable(formData)
+        .then(res => {
+          console.log(res);
+          setDomainAvailable(res.available);
+        })
+        .catch(e => console.error(e.message));
+    } catch (error) {
+      console.error(error.message);
     }
   };
 
@@ -81,7 +106,7 @@ const AdminRegister = () => {
         />
       ))}
 
-      <Card className="w-full max-w-md z-10 relative shadow-2xl">
+      <Card className="w-full max-w-md z-10 relative shadow-2xl my-10">
         <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl transform translate-x-1/2 -translate-y-1/2"></div>
         <div className="absolute bottom-0 left-0 w-24 h-24 bg-secondary/10 rounded-full blur-2xl transform -translate-x-1/2 translate-y-1/2"></div>
 
@@ -89,7 +114,7 @@ const AdminRegister = () => {
           Create Admin Account
           <span className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-primary rounded"></span>
         </h1>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="form-group">
             <label htmlFor="username" className="form-label flex items-center">
@@ -109,7 +134,27 @@ const AdminRegister = () => {
               placeholder="Enter your username"
             />
           </div>
-          
+
+          <div className="form-group">
+            <label htmlFor="username" className="form-label flex items-center">
+              <FaLink className="h-5 w-5 mr-2 text-primary" />
+              Sub-Domain
+            </label>
+            <input
+              type="text"
+              id="subdomain"
+              name="subdomain"
+              className="form-input group-hover:border-primary transition-all duration-300"
+              value={formData.subdomain}
+              onChange={handleSubdomainChange}
+              required
+              placeholder="Enter your sub-domain"
+            />
+            <p className='text-ls text-gray-500 my-2'>
+              http://{formData.subdomain}.localhost:5000 {formData.subdomain !== "" ? (domainAvailable ? <span className='text-green-600'>*Available</span> : <span className='text-red-600'>*Not Available</span>) : null}
+            </p>
+          </div>
+
           <div className="form-group">
             <label htmlFor="email" className="form-label flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
@@ -129,7 +174,7 @@ const AdminRegister = () => {
               placeholder="Enter your email"
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="password" className="form-label flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
@@ -149,7 +194,7 @@ const AdminRegister = () => {
               placeholder="Enter your password"
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="confirmPassword" className="form-label flex items-center">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
@@ -169,7 +214,7 @@ const AdminRegister = () => {
               placeholder="Confirm your password"
             />
           </div>
-          
+
           <Button
             type="submit"
             variant="primary"
@@ -180,11 +225,11 @@ const AdminRegister = () => {
             {isLoading ? 'Registering...' : 'Create Account'}
           </Button>
         </form>
-        
+
         <p className="mt-6 text-center text-gray-600">
           Already have an account?{' '}
-          <Link 
-            to="/admin/login" 
+          <Link
+            to="/admin/login"
             className="text-primary hover:underline font-semibold"
           >
             Sign In

@@ -25,44 +25,77 @@ import CustomTasks from './components/admin/CustomTasks';
 // Protected route component
 import PrivateRoute from './components/common/PrivateRoute';
 
-function App() {
-  return (
-    <Routes>
-      {/* Public routes */}
-      <Route path="/" element={<Home />} />
-      <Route path="/admin/login" element={<AdminLogin />} />
-      <Route path="/admin/register" element={<AdminRegister />} />
-      <Route path="/worker/login" element={<WorkerLogin />} />
-      
-      {/* Protected Admin routes with Layout */}
-      <Route element={<PrivateRoute allowedRoles={['admin']} />}>
-        <Route path="/admin/*" element={<AdminLayout />}>
-          <Route index element={<AdminDashboard />} />
-          <Route path="workers" element={<WorkerManagement />} />
-          <Route path="departments" element={<DepartmentManagement />} />
-          <Route path="columns" element={<ColumnManagement />} />
-          <Route path="tasks" element={<TaskManagement />} />
-          <Route path="leaves" element={<LeaveManagement />} />
-          <Route path="comments" element={<CommentManagement />} />
-          <Route path="topics" element={<TopicManagement />} />
-          <Route path="food-requests" element={<FoodRequestManagement />} />
-          <Route path="custom-tasks" element={<CustomTasks />} />
-          {/* Catch-all route for unknown admin paths */}
-          <Route path="*" element={<Navigate to="/admin" replace />} />
-        </Route>
-      </Route>
-      
-      {/* Protected Worker routes */}
-      <Route element={<PrivateRoute allowedRoles={['worker']} />}>
-        <Route path="/worker/*" element={<WorkerDashboard />}>
-          {/* You can add nested worker routes here if needed */}
-          <Route path="*" element={<Navigate to="/worker" replace />} />
-        </Route>
-      </Route>
+// Context
+import appContext from './context/AppContext';
+import { useEffect, useState } from 'react';
 
-      {/* 404 Not Found Route */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+function getSubdomain() {
+  const host = window.location.hostname; // e.g., company1.localhost
+  const parts = host.split("."); // Split by "."
+
+  // If it's a local dev environment (e.g., company1.localhost)
+  if (host.includes("localhost") && parts.length > 1) {
+    return parts[0]; // Get first part (company1)
+  }
+
+  // If it's a production environment (e.g., company1.yourapp.com)
+  if (parts.length > 2) {
+    return parts[0]; // Get first part (company1)
+  }
+
+  return "main"; // Default if no subdomain
+}
+
+function App() {
+  const [subdomain, setSubdomain] = useState("main");
+
+  useEffect(() => {
+    setSubdomain(getSubdomain());
+  }, []);
+
+  const context = {
+    subdomain
+  } 
+
+  return (
+    <appContext.Provider value={context}>
+      <Routes>
+        {/* Public routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/register" element={<AdminRegister />} />
+        <Route path="/worker/login" element={<WorkerLogin />} />
+
+        {/* Protected Admin routes with Layout */}
+        <Route element={<PrivateRoute allowedRoles={['admin']} />}>
+          <Route path="/admin/*" element={<AdminLayout />}>
+            <Route index element={<AdminDashboard />} />
+            <Route path="workers" element={<WorkerManagement />} />
+            <Route path="departments" element={<DepartmentManagement />} />
+            <Route path="columns" element={<ColumnManagement />} />
+            <Route path="tasks" element={<TaskManagement />} />
+            <Route path="leaves" element={<LeaveManagement />} />
+            <Route path="comments" element={<CommentManagement />} />
+            <Route path="topics" element={<TopicManagement />} />
+            <Route path="food-requests" element={<FoodRequestManagement />} />
+            <Route path="custom-tasks" element={<CustomTasks />} />
+            {/* Catch-all route for unknown admin paths */}
+            <Route path="*" element={<Navigate to="/admin" replace />} />
+          </Route>
+        </Route>
+
+        {/* Protected Worker routes */}
+        <Route element={<PrivateRoute allowedRoles={['worker']} />}>
+          <Route path="/worker/*" element={<WorkerDashboard />}>
+            {/* You can add nested worker routes here if needed */}
+            <Route path="*" element={<Navigate to="/worker" replace />} />
+          </Route>
+        </Route>
+
+        {/* 404 Not Found Route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </appContext.Provider>
   );
 }
 
