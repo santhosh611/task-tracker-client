@@ -13,6 +13,9 @@ export const createWorker = async (workerData) => {
     if (!workerData.username || workerData.username.trim() === '') {
       throw new Error('Username is required and cannot be empty');
     }
+    if (!workerData.subdomain || workerData.subdomain.trim() === '') {
+      throw new Error('Subdomain is missing, please check the url');
+    }
     if (!workerData.password || workerData.password.trim() === '') {
       throw new Error('Password is required and cannot be empty');
     }

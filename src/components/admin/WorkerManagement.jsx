@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { getWorkers, createWorker, updateWorker, deleteWorker } from '../../services/workerService';
@@ -8,6 +8,7 @@ import Button from '../common/Button';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import Spinner from '../common/Spinner';
+import appContext from '../../context/AppContext';
 
 const WorkerManagement = () => {
   const [workers, setWorkers] = useState([]);
@@ -37,6 +38,9 @@ const WorkerManagement = () => {
     department: '',
     photo: ''
   });
+
+  // Subdomain
+  const { subdomain } = useContext(appContext);
 
   // Load workers and departments
   useEffect(() => {
@@ -131,8 +135,13 @@ const openEditModal = (worker) => {
     const trimmedName = formData.name.trim();
     const trimmedUsername = formData.username.trim();
     const trimmedPassword = formData.password.trim();
-    
+
     // Validation checks
+    if (!subdomain || subdomain == 'main') {
+      toast.error('Subdomain is missing, check the url');
+      return;
+    }
+
     if (!trimmedName) {
       toast.error('Name is required and cannot be empty');
       return;
@@ -158,6 +167,7 @@ const openEditModal = (worker) => {
         ...formData,
         name: trimmedName,
         username: trimmedUsername,
+        subdomain,
         password: trimmedPassword,
         photo: formData.photo || ''
       });
