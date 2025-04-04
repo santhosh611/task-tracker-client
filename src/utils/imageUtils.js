@@ -7,5 +7,6 @@
  */
 export const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
-    return `http://localhost:5000/uploads/${imagePath}`;
+    return `${import.meta.env.VITE_API_BASE_URL}/uploads/${imagePath}`;
+
   };
