@@ -8,6 +8,7 @@ import Button from '../common/Button';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import Spinner from '../common/Spinner';
+import { getImageUrl } from '../../utils/imageUtils';
 
 const TaskManagement = () => {
   const [tasks, setTasks] = useState([]);
@@ -120,10 +121,30 @@ const TaskManagement = () => {
   // Table columns configuration
   const columns = [
     {
-      header: 'Worker',
+      header: 'WORKER',
       accessor: 'worker',
-      render: (task) => task.worker?.name || 'Unknown'
+      render: (task) => (
+        <div className="flex items-center">
+          {task.worker?.photo ? (
+            <img 
+              src={getImageUrl(task.worker.photo)} 
+              alt={task.worker?.name}
+              className="w-8 h-8 rounded-full object-cover mr-2"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(task.worker?.name || 'Unknown')}`;
+              }}
+            />
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600 mr-2">
+              {task.worker?.name ? task.worker.name.charAt(0).toUpperCase() : '?'}
+            </div>
+          )}
+          <span>{task.worker?.name || 'Unknown'}</span>
+        </div>
+      )
     },
+
     {
       header: 'Department',
       accessor: 'department',

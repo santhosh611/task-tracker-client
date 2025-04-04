@@ -17,6 +17,8 @@ import {
 } from '../../services/commentService';
 import Sidebar from './Sidebar';
 
+const API_BASE_URL = 'http://localhost:5000';
+
 const WorkerLayout = ({ children }) => {
   const { user, logout } = useAuth();
   const [newComments, setNewComments] = useState(0);
@@ -95,7 +97,9 @@ const WorkerLayout = ({ children }) => {
       badge: newComments > 0 ? newComments : null
     }
   ];
-  
+  // Add this inside your WorkerLayout component
+console.log("User data in layout:", user);
+console.log("Photo URL being passed to sidebar:", user.photo ? `${API_BASE_URL}/uploads/${user.photo}` : null);
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar
@@ -103,7 +107,9 @@ const WorkerLayout = ({ children }) => {
         logoText="Worker Dashboard"
         user={{
           ...user,
-          displayName: `${user.name} (${user.department})` // Show name and department
+          displayName: `${user.name} (${user.department})`,
+          // Provide the full URL to the photo if it exists
+          photo: user.photo ? `${API_BASE_URL}/uploads/${user.photo}` : null
         }}
         onLogout={handleLogout}
       />

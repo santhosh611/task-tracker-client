@@ -62,22 +62,32 @@ const Sidebar = ({
         
         {/* User profile */}
         {user && (
-          <div className="px-4 py-5 border-b border-gray-700">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <img
-                  className="h-10 w-10 rounded-full object-cover"
-                  src={user.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.username)}`}
-                  alt={user.name || user.username}
-                />
-              </div>
-              <div className="ml-3">
-                <p className="text-base font-medium text-white">{user.name || user.username}</p>
-                <p className="text-sm font-medium text-gray-400">{user.department || user.role}</p>
-              </div>
-            </div>
+  <div className="px-4 py-5 border-b border-gray-700">
+    <div className="flex items-center">
+      <div className="flex-shrink-0">
+        {user.photo ? (
+          <img
+            className="h-10 w-10 rounded-full object-cover"
+            src={user.photo}
+            alt={user.name || user.username}
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.username)}`;
+            }}
+          />
+        ) : (
+          <div className="h-10 w-10 rounded-full bg-gray-600 flex items-center justify-center text-white font-bold">
+            {(user.name || user.username || '').charAt(0).toUpperCase()}
           </div>
         )}
+      </div>
+      <div className="ml-3">
+        <p className="text-base font-medium text-white">{user.name || user.username}</p>
+        <p className="text-sm font-medium text-gray-400">{user.department || user.role}</p>
+      </div>
+    </div>
+  </div>
+)}
         
         {/* Navigation Links */}
         <nav className="mt-5 px-2 space-y-1">

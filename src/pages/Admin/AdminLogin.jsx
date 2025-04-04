@@ -1,9 +1,124 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaEye, FaEyeSlash, FaLock } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
+
+// Advanced Password Input Component
+const PasswordInput = ({ 
+  value, 
+  onChange, 
+  placeholder = "Enter your password", 
+  name = "password",
+  showStrengthMeter = true 
+}) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(0);
+
+  // Advanced password strength calculation
+  const calculatePasswordStrength = (password) => {
+    let strength = 0;
+    if (password.length > 7) strength += 1;
+    if (/[A-Z]/.test(password)) strength += 1;
+    if (/[a-z]/.test(password)) strength += 1;
+    if (/[0-9]/.test(password)) strength += 1;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+    return strength;
+  };
+
+  // Handle password change
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    onChange(e);
+    
+    // Calculate password strength
+    const strength = calculatePasswordStrength(newPassword);
+    setPasswordStrength(strength);
+  };
+
+  // Password strength color and width
+  const strengthColors = [
+    'bg-red-500',   // Very weak
+    'bg-orange-500', // Weak
+    'bg-yellow-500', // Medium
+    'bg-green-500',  // Strong
+    'bg-green-700'   // Very Strong
+  ];
+
+  return (
+    <div className="form-group relative">
+      <label htmlFor={name} className="form-label flex items-center">
+        <FaLock className="mr-2 text-primary" />
+        Password
+      </label>
+      <div className="relative">
+        <input
+          type={showPassword ? "text" : "password"}
+          id={name}
+          name={name}
+          className="form-input group-hover:border-primary transition-all duration-300 pr-12"
+          value={value}
+          onChange={handlePasswordChange}
+          placeholder={placeholder}
+          required
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-600 hover:text-primary transition-colors"
+        >
+          <AnimatePresence mode="wait">
+            {showPassword ? (
+              <motion.div
+                key="hide"
+                initial={{ opacity: 0, rotate: -180 }}
+                animate={{ opacity: 1, rotate: 0 }}
+                exit={{ opacity: 0, rotate: 180 }}
+                transition={{ duration: 0.2 }}
+              >
+                <FaEyeSlash />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="show"
+                initial={{ opacity: 0, rotate: 180 }}
+                animate={{ opacity: 1, rotate: 0 }}
+                exit={{ opacity: 0, rotate: -180 }}
+                transition={{ duration: 0.2 }}
+              >
+                <FaEye />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </button>
+      </div>
+
+      {/* Password Strength Meter */}
+      {showStrengthMeter && (
+        <div className="mt-1 h-1 w-full bg-gray-200 rounded-full overflow-hidden">
+          <motion.div 
+            className={`h-full ${strengthColors[passwordStrength]}`}
+            initial={{ width: 0 }}
+            animate={{ width: `${(passwordStrength / 5) * 100}%` }}
+            transition={{ duration: 0.3 }}
+          />
+        </div>
+      )}
+
+      {/* Password Hints */}
+      {showStrengthMeter && value && (
+        <div className="text-xs mt-1 text-gray-600">
+          {passwordStrength <= 1 && "Weak password"}
+          {passwordStrength === 2 && "Medium strength"}
+          {passwordStrength >= 3 && "Strong password"}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const AdminLogin = () => {
   const [credentials, setCredentials] = useState({
@@ -52,7 +167,7 @@ const AdminLogin = () => {
       setIsLoading(false);
     }
   };
-  
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 overflow-hidden relative">
       {/* Animated Background Shapes */}
@@ -106,24 +221,12 @@ const AdminLogin = () => {
             />
           </div>
           
-          <div className="form-group">
-            <label htmlFor="password" className="form-label flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-              </svg>
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className="form-input group-hover:border-primary transition-all duration-300"
-              value={credentials.password}
-              onChange={handleChange}
-              placeholder="Enter your password"
-              required
-            />
-          </div>
+          {/* Replace previous password input with PasswordInput component */}
+          <PasswordInput 
+            value={credentials.password}
+            onChange={handleChange}
+            showStrengthMeter={true}
+          />
           
           <Button
             type="submit"

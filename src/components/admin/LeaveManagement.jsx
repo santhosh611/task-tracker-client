@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
+
 import { format } from 'date-fns';
 import {
   getLeavesByStatus,
@@ -9,6 +10,8 @@ import {
 import Card from '../common/Card';
 import Spinner from '../common/Spinner';
 import Button from '../common/Button';
+import { getImageUrl } from '../../utils/imageUtils';
+
 
 const LeaveManagement = () => {
   const [leaves, setLeaves] = useState([]);
@@ -30,7 +33,17 @@ const LeaveManagement = () => {
   const loadLeaves = async () => {
     setIsLoading(true);
     try {
+      // Make sure we're admin before fetching leaves
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (currentUser.role !== 'admin') {
+        console.error('Non-admin user trying to access leave management');
+        toast.error('Access denied. Please log in with admin credentials.');
+        setTimeout(() => logout(), 2000);
+        return;
+      }
+      
       const leavesData = await getLeavesByStatus(statusFilter);
+      
       const safeLeaves = Array.isArray(leavesData) ? leavesData : [];
       setLeaves(safeLeaves);
     } catch (error) {
@@ -166,29 +179,63 @@ const LeaveManagement = () => {
         ) : (
   
           <div className="space-y-4">
-      {leaves.map((leave) => (
-        <div
-          key={leave._id}
-          className={`border rounded-lg overflow-hidden border-gray-200 ${
-            !leave.workerViewed ? 'border-l-4 border-l-blue-500' : ''
-          }`}
-        >
-                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium text-gray-700">{leave.leaveType}</h3>
-                    <p className="text-sm text-gray-500">
-                      Requested by: {leave.worker?.name} ({leave.worker?.department})
-                    </p>
-                  </div>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(
-                      leave.status
-                    )}`}
-                  >
-                    {leave.status}
-                  </span>
-                </div>
 
+{leaves.map((leave) => (
+  <div
+    key={leave._id}
+    className={`border rounded-lg overflow-hidden border-gray-200 ${
+      !leave.workerViewed ? 'border-l-4 border-l-blue-500' : ''
+    }`}
+  >
+    <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
+      <div>
+        <h3 className="font-medium text-gray-700">{leave.leaveType}</h3>
+        <p className="text-sm text-gray-500">
+          Requested by: {(() => {
+            // Defensive rendering with detailed checks
+            if (leave.worker && leave.worker.name) {
+              const departmentName = leave.worker.department 
+                ? (typeof leave.worker.department === 'object' 
+                  ? leave.worker.department.name 
+                  : leave.worker.department)
+                : 'No Department';
+              return `${leave.worker.name} (${departmentName})`;
+            }
+            return 'Unknown Worker (No Department)';
+          })()}
+        </p>
+      </div>
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(
+          leave.status
+        )}`}
+      >
+        {leave.status}
+      </span>
+    </div>
+
+    <div className="p-4">
+      <div className="flex items-center mb-4">
+        {leave.worker?.photo ? (
+          <img 
+            src={getImageUrl(leave.worker.photo)} 
+            alt={leave.worker?.name || 'Worker'}
+            className="w-8 h-8 rounded-full object-cover mr-2"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(leave.worker?.name || 'Unknown')}`;
+            }}
+          />
+        ) : (
+          <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600 mr-2">
+            {leave.worker?.name ? leave.worker.name.charAt(0).toUpperCase() : '?'}
+          </div>
+        )}
+        <p className="text-sm text-gray-500">
+          {leave.worker?.name || 'Unknown'} ({leave.worker?.department || 'No Department'})
+        </p>
+      </div>
+</div>
                 <div className="p-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>

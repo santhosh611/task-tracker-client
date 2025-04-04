@@ -1,13 +1,10 @@
-import api from '../hooks/useAxios';
+import api from '../services/api';
 import { getAuthToken } from '../utils/authUtils';
 
 // Get all comments (admin)
 export const getAllComments = async () => {
   try {
-    const token = getAuthToken();
-    const response = await api.get('/comments', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await api.get('/comments');
     console.log('Comments response:', response.data);
     return response.data;
   } catch (error) {
@@ -19,10 +16,7 @@ export const getAllComments = async () => {
 // Get my comments (worker)
 export const getMyComments = async () => {
   try {
-    const token = localStorage.getItem('token');
-    const response = await api.get('/comments/me', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await api.get('/comments/me');
     return response.data;
   } catch (error) {
     console.error('Failed to fetch my comments:', error);
@@ -33,10 +27,7 @@ export const getMyComments = async () => {
 // Get worker comments (admin)
 export const getWorkerComments = async (workerId) => {
   try {
-    const token = getAuthToken();
-    const response = await api.get(`/comments/worker/${workerId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await api.get(`/comments/worker/${workerId}`);
     return response.data;
   } catch (error) {
     console.error(`Failed to fetch worker comments for ${workerId}:`, error);
@@ -47,17 +38,10 @@ export const getWorkerComments = async (workerId) => {
 // Create comment
 export const createComment = async (commentData) => {
   try {
-    const token = localStorage.getItem('token');
-    
-    console.log('Creating comment with token:', token ? 'Token exists' : 'No token');
+    console.log('Creating comment');
     console.log('Comment data:', commentData);
     
-    const response = await api.post('/comments', commentData, {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const response = await api.post('/comments', commentData);
 
     console.log('Comment created successfully:', response.data);
     return response.data;
@@ -68,18 +52,13 @@ export const createComment = async (commentData) => {
   }
 };
 
+
 // Add reply to comment
 export const addReply = async (commentId, replyData) => {
   try {
-    const token = localStorage.getItem('token');
     console.log(`Adding reply to comment ${commentId}:`, replyData);
     
-    const response = await api.post(`/comments/${commentId}/replies`, replyData, {
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
-      }
-    });
+    const response = await api.post(`/comments/${commentId}/replies`, replyData);
     
     console.log('Reply added successfully:', response.data);
     return response.data;
@@ -92,10 +71,7 @@ export const addReply = async (commentId, replyData) => {
 // Mark comment as read
 export const markCommentAsRead = async (commentId) => {
   try {
-    const token = localStorage.getItem('token');
-    const response = await api.put(`/comments/${commentId}/read`, {}, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await api.put(`/comments/${commentId}/read`, {});
     return response.data;
   } catch (error) {
     console.error(`Failed to mark comment ${commentId} as read:`, error);
@@ -103,13 +79,11 @@ export const markCommentAsRead = async (commentId) => {
   }
 };
 
+
 // Get unread admin replies
 export const getUnreadAdminReplies = async () => {
   try {
-    const token = getAuthToken();
-    const response = await api.get('/comments/unread-admin-replies', {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await api.get('/comments/unread-admin-replies');
     return response.data;
   } catch (error) {
     console.error('Failed to fetch unread admin replies:', error);
@@ -120,10 +94,7 @@ export const getUnreadAdminReplies = async () => {
 // Mark admin replies as read
 export const markAdminRepliesAsRead = async () => {
   try {
-    const token = getAuthToken();
-    await api.put('/comments/mark-admin-replies-read', null, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    await api.put('/comments/mark-admin-replies-read', null);
   } catch (error) {
     console.error('Failed to mark admin replies as read:', error);
   }
@@ -132,16 +103,25 @@ export const markAdminRepliesAsRead = async () => {
 // Cleanup comments (admin only)
 export const cleanupComments = async () => {
   try {
-    const token = getAuthToken();
-    const response = await api.post('/comments/cleanup', {}, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
+    const response = await api.post('/comments/cleanup', {});
     return response.data;
   } catch (error) {
     console.error('Failed to cleanup comments:', error);
     throw error.response ? error.response.data : new Error('Failed to cleanup comments');
   }
 };
+
+
+export const getNewCommentCount = async () => {
+  try {
+    const response = await api.get('/comments/new-count');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch new comment count:', error);
+    throw error.response?.data || new Error('Failed to fetch new comment count');
+  }
+};
+
 
 export default {
   getAllComments,
@@ -152,5 +132,6 @@ export default {
   markCommentAsRead,
   getUnreadAdminReplies,
   markAdminRepliesAsRead,
-  cleanupComments
+  cleanupComments,
+  getNewCommentCount,
 };

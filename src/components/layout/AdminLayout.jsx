@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom'; // Add Outlet import
 import { 
   FaHome, 
@@ -15,28 +15,26 @@ import {
 } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
 import { getAllLeaves } from '../../services/leaveService';
+import { getNewLeaveRequestsCount } from '../../services/leaveService';
 import { getAllComments } from '../../services/commentService';
-import Sidebar from './Sidebar';
+import Sidebar from './Sidebar.jsx'
 
 const AdminLayout = () => {
   const { user, logout } = useAuth();
   const [pendingLeaves, setPendingLeaves] = useState(0);
   const [newComments, setNewComments] = useState(0);
   const navigate = useNavigate();
+  const [newLeaveRequestsCount, setNewLeaveRequestsCount] = useState(0);
   
   // Check for new comments and leave updates
   useEffect(() => {
     const fetchNotificationCounts = async () => {
       try {
-        // Fetch leaves
-        const leaves = await getAllLeaves();
-        const unviewedLeaves = leaves.filter(leave => 
-          !leave.workerViewed && 
-          (leave.status === 'Pending' || leave.status === 'Approved')
-        ).length;
-        setPendingLeaves(unviewedLeaves);
+        // Fetch new leave request count using dedicated endpoint
+        const newLeaveRequestCount = await getNewLeaveRequestsCount();
+        setNewLeaveRequestsCount(newLeaveRequestCount);
   
-        // Fetch comments
+        // Fetch comments count
         const comments = await getAllComments();
         const newUnreadComments = comments.filter(comment => 
           comment.isNew || 
@@ -49,11 +47,12 @@ const AdminLayout = () => {
     };
   
     fetchNotificationCounts();
-  
     const intervalId = setInterval(fetchNotificationCounts, 5 * 60 * 1000);
   
     return () => clearInterval(intervalId);
   }, []);
+
+  
   
   const handleLogout = () => {
     logout();
@@ -105,7 +104,7 @@ const AdminLayout = () => {
       to: '/admin/leaves',
       icon: <FaCalendarAlt />,
       label: 'Leave Requests',
-      badge: pendingLeaves > 0 ? pendingLeaves : null
+      badge: newLeaveRequestsCount > 0 ? newLeaveRequestsCount : null
     },
     {
       to: '/admin/comments',
@@ -123,10 +122,10 @@ const AdminLayout = () => {
         user={user}
         onLogout={handleLogout}
       />
-      
+
       <div className="flex-1 overflow-auto md:ml-64">
         <main className="p-4 md:p-6">
-          <Outlet /> {/* Correct import and usage */}
+          <Outlet />
         </main>
       </div>
     </div>

@@ -6,7 +6,9 @@ import Card from '../common/Card';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
 import Spinner from '../common/Spinner';
-import { useAuth } from '../../hooks/useAuth'; // Import auth context
+import { useAuth } from '../../hooks/useAuth';
+import { getImageUrl } from '../../utils/imageUtils'; // Import auth context
+
 
 const CommentManagement = () => {
   const { logout } = useAuth(); // Get logout function from auth context
@@ -16,6 +18,8 @@ const CommentManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDepartment, setFilterDepartment] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [newCommentCount, setNewCommentCount] = useState(0);
+
   // Modal states
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
   const [isViewAttachmentModalOpen, setIsViewAttachmentModalOpen] = useState(false);
@@ -27,15 +31,19 @@ const CommentManagement = () => {
   
   // Load all comments (initial load)
   useEffect(() => {
-    loadComments();
-    
-    // Set up auto refresh interval
-    if (autoRefresh) {
-      refreshIntervalRef.current = setInterval(() => {
-        loadComments(false); // Silent refresh (no loading spinner)
-      }, 30000); // Refresh every 30 seconds
-    }
-    
+    const loadCommentsWithRefresh = async () => {
+      await loadComments();
+  
+      // Set up auto refresh interval
+      if (autoRefresh) {
+        refreshIntervalRef.current = setInterval(() => {
+          loadComments(false); // Silent refresh (no loading spinner)
+        }, 30000); // Refresh every 30 seconds
+      }
+    };
+  
+    loadCommentsWithRefresh();
+  
     return () => {
       // Clean up interval on component unmount
       if (refreshIntervalRef.current) {
@@ -44,12 +52,24 @@ const CommentManagement = () => {
     };
   }, [autoRefresh]);
   
-  const loadComments = async (showLoadingSpinner = true) => {
+  const loadComments = async (showLoadingSpinner = true, retry = false) => {
     if (showLoadingSpinner) {
       setIsLoading(true);
     }
     
     try {
+      // Make sure we're admin before fetching all comments
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+      if (currentUser.role !== 'admin') {
+        console.error('Non-admin user trying to access admin comments');
+        if (!retry) {
+          // Log user out and redirect to login page
+          toast.error('Access denied. Please log in with admin credentials.');
+          setTimeout(() => logout(), 2000);
+        }
+        return;
+      }
+      
       const commentsData = await getAllComments();
       
       // Ensure commentsData is an array
@@ -69,21 +89,25 @@ const CommentManagement = () => {
     } catch (error) {
       console.error('Failed to load comments:', error);
       
-      // Handle auth errors
-      if (error.response?.status === 403 || error.message?.includes('denied')) {
-        // Stop auto-refresh to prevent multiple logout attempts
-        if (refreshIntervalRef.current) {
-          clearInterval(refreshIntervalRef.current);
+      // If session expired and this isn't a retry attempt, try once to refresh
+      if (!retry && 
+          (error.response?.status === 403 || 
+           error.message?.includes('denied'))) {
+        try {
+          // Try to manually refresh token
+          console.log('Attempting manual token refresh after 403 error');
+          
+          // If refresh works, retry loading comments once
+          setTimeout(() => loadComments(showLoadingSpinner, true), 1000);
+          return;
+        } catch (refreshError) {
+          console.error('Manual token refresh failed:', refreshError);
         }
-        
-        toast.error('Your session has expired. Please log in again.');
-        setTimeout(() => logout(), 2000); // Give time for toast to be seen
-        return;
       }
       
       // Only show error toast if it's a manual refresh
       if (showLoadingSpinner) {
-        toast.error('Failed to load comments');
+        toast.error(error.message || 'Failed to load comments');
       }
       
       // Set to empty array in case of error
@@ -99,9 +123,6 @@ const CommentManagement = () => {
   // Manual refresh handler with token refresh attempt
   const refreshComments = async () => {
     try {
-      // Store current auth token in localStorage to preserve it
-      const currentToken = localStorage.getItem('token');
-      
       setIsLoading(true);
       toast.info('Refreshing comments...');
       
@@ -205,12 +226,7 @@ const CommentManagement = () => {
       // Refresh comments after adding reply
       loadComments(true);
     } catch (error) {
-      if (error.response?.status === 403 || error.message?.includes('denied')) {
-        toast.error('Your session has expired. Please log in again.');
-        setTimeout(() => logout(), 2000);
-        return;
-      }
-      
+      // Don't immediately log out - let the api interceptor handle token refresh
       toast.error(error.message || 'Failed to add reply');
     }
   };
@@ -251,6 +267,14 @@ const CommentManagement = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
+          <div className="relative">
+  <span className="text-lg font-semibold">Comments Management</span>
+  {newCommentCount > 0 && (
+    <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-red-100 bg-red-600 rounded-full">
+      {newCommentCount}
+    </span>
+  )}
+</div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Filter by Department
@@ -332,32 +356,44 @@ const CommentManagement = () => {
                     : 'border'
                 }`}
               >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 bg-gray-300 rounded-full mr-2 flex items-center justify-center">
-                      <span className="text-xs font-bold text-gray-600">
-                        {comment.worker && comment.worker.name 
-                          ? comment.worker.name[0].toUpperCase() 
-                          : 'U'}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium">
-                        {comment.worker && comment.worker.name 
-                          ? comment.worker.name 
-                          : 'Unknown Worker'}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        {comment.worker && comment.worker.department && comment.worker.department.name
-                          ? comment.worker.department.name
-                          : 'Unassigned'}
-                      </p>
-                    </div>
-                  </div>
-                  <span className="text-xs text-gray-500">
-                    {formatDate(comment.createdAt)}
-                  </span>
-                </div>
+<div className="flex items-center justify-between mb-2">
+  <div className="flex items-center">
+    {comment.worker && comment.worker.photo ? (
+      <img 
+        src={getImageUrl(comment.worker.photo)} 
+        alt={comment.worker.name}
+        className="w-8 h-8 rounded-full object-cover mr-2"
+        onError={(e) => {
+          e.target.onerror = null;
+          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.worker?.name || 'Unknown')}`;
+        }}
+      />
+    ) : (
+      <div className="w-8 h-8 bg-gray-300 rounded-full mr-2 flex items-center justify-center">
+        <span className="text-xs font-bold text-gray-600">
+          {comment.worker && comment.worker.name 
+            ? comment.worker.name[0].toUpperCase() 
+            : 'U'}
+        </span>
+      </div>
+    )}
+    <div>
+      <p className="font-medium">
+        {comment.worker && comment.worker.name 
+          ? comment.worker.name 
+          : 'Unknown Worker'}
+      </p>
+      <p className="text-xs text-gray-500">
+        {comment.worker && comment.worker.department && comment.worker.department.name
+          ? comment.worker.department.name
+          : 'Unassigned'}
+      </p>
+    </div>
+  </div>
+  <span className="text-xs text-gray-500">
+    {formatDate(comment.createdAt)}
+  </span>
+</div>
                 
                 <p className="my-2 text-gray-700">{comment.text || 'No comment text'}</p>
                 
@@ -369,31 +405,58 @@ const CommentManagement = () => {
                 
                 {/* Replies Section */}
                 {comment.replies && comment.replies.length > 0 && (
-                  <div className="mt-3 mb-3 space-y-2">
-                    <p className="text-sm font-medium text-gray-700">Replies:</p>
-                    
-                    {comment.replies.map((reply, index) => (
-                      <div 
-                        key={`${comment._id}-reply-${index}`}
-                        className={`p-3 rounded-md ${
-                          reply.isAdminReply 
-                            ? 'bg-blue-50 border-l-4 border-blue-400'
-                            : 'bg-gray-100'
-                        }`}
-                      >
-                        <div className="flex justify-between items-center mb-1">
-                          <p className="text-sm font-medium">
-                            {reply.isAdminReply ? 'Admin' : comment.worker?.name || 'Worker'}
-                          </p>
-                          <span className="text-xs text-gray-500">
-                            {reply.createdAt ? formatDate(reply.createdAt) : 'Recent'}
-                          </span>
-                        </div>
-                        <p className="text-sm">{reply.text}</p>
-                      </div>
-                    ))}
-                  </div>
-                )}
+  <div className="mt-3 mb-3 space-y-2">
+    <p className="text-sm font-medium text-gray-700">Replies:</p>
+    
+    {comment.replies.map((reply, index) => (
+      <div 
+        key={`${comment._id}-reply-${index}`}
+        className={`p-3 rounded-md ${
+          reply.isAdminReply 
+            ? 'bg-blue-50 border-l-4 border-blue-400'
+            : 'bg-gray-100'
+        }`}
+      >
+        <div className="flex justify-between items-center mb-1">
+          <div className="flex items-center">
+            {reply.isAdminReply ? (
+              <div className="w-6 h-6 bg-blue-500 rounded-full mr-2 flex items-center justify-center">
+                <span className="text-xs font-bold text-white">A</span>
+              </div>
+            ) : (
+              comment.worker && comment.worker.photo ? (
+                <img 
+                  src={getImageUrl(comment.worker.photo)} 
+                  alt={comment.worker.name}
+                  className="w-6 h-6 rounded-full object-cover mr-2"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.worker?.name || 'Unknown')}&size=24`;
+                  }}
+                />
+              ) : (
+                <div className="w-6 h-6 bg-gray-300 rounded-full mr-2 flex items-center justify-center">
+                  <span className="text-xs font-bold text-gray-600">
+                    {comment.worker && comment.worker.name 
+                      ? comment.worker.name[0].toUpperCase() 
+                      : 'U'}
+                  </span>
+                </div>
+              )
+            )}
+            <p className="text-sm font-medium">
+              {reply.isAdminReply ? 'Admin' : comment.worker?.name || 'Worker'}
+            </p>
+          </div>
+          <span className="text-xs text-gray-500">
+            {reply.createdAt ? formatDate(reply.createdAt) : 'Recent'}
+          </span>
+        </div>
+        <p className="text-sm">{reply.text}</p>
+      </div>
+    ))}
+  </div>
+)}
                 
                 <div className="mt-3">
                   <Button
@@ -412,44 +475,73 @@ const CommentManagement = () => {
 
       
       {/* Reply Modal */}
-      <Modal
-        isOpen={isReplyModalOpen}
-        onClose={() => setIsReplyModalOpen(false)}
-        title={`Reply to ${selectedComment?.worker?.name || 'Worker'}`}
+      {/* Reply Modal */}
+<Modal
+  isOpen={isReplyModalOpen}
+  onClose={() => setIsReplyModalOpen(false)}
+  title={`Reply to ${selectedComment?.worker?.name || 'Worker'}`}
+>
+  <form onSubmit={handleSubmitReply}>
+    <div className="mb-4">
+      <div className="flex items-center mb-3">
+        {selectedComment?.worker?.photo ? (
+          <img 
+            src={getImageUrl(selectedComment.worker.photo)} 
+            alt={selectedComment.worker.name}
+            className="w-10 h-10 rounded-full object-cover mr-3"
+            onError={(e) => {
+              e.target.onerror = null;
+              e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedComment.worker?.name || 'Unknown')}`;
+            }}
+          />
+        ) : (
+          <div className="w-10 h-10 bg-gray-300 rounded-full mr-3 flex items-center justify-center">
+            <span className="text-sm font-bold text-gray-600">
+              {selectedComment?.worker?.name 
+                ? selectedComment.worker.name[0].toUpperCase() 
+                : 'U'}
+            </span>
+          </div>
+        )}
+        <div>
+          <p className="font-medium">{selectedComment?.worker?.name || 'Unknown Worker'}</p>
+          <p className="text-xs text-gray-500">
+            {selectedComment?.worker?.department?.name || 'Unassigned'}
+          </p>
+        </div>
+      </div>
+      
+      <p className="text-sm text-gray-500 mb-2">Original comment:</p>
+      <p className="p-3 bg-gray-50 rounded-md mb-4">{selectedComment?.text || ''}</p>
+      
+      <label htmlFor="reply" className="form-label">Your Reply</label>
+      <textarea
+        id="reply"
+        className="form-input"
+        rows="4"
+        value={replyText}
+        onChange={(e) => setReplyText(e.target.value)}
+        required
+      ></textarea>
+    </div>
+    
+    <div className="flex justify-end space-x-2">
+      <Button 
+        type="button"
+        variant="outline"
+        onClick={() => setIsReplyModalOpen(false)}
       >
-        <form onSubmit={handleSubmitReply}>
-          <div className="mb-4">
-            <p className="text-sm text-gray-500 mb-2">Original comment:</p>
-            <p className="p-3 bg-gray-50 rounded-md mb-4">{selectedComment?.text || ''}</p>
-            
-            <label htmlFor="reply" className="form-label">Your Reply</label>
-            <textarea
-              id="reply"
-              className="form-input"
-              rows="4"
-              value={replyText}
-              onChange={(e) => setReplyText(e.target.value)}
-              required
-            ></textarea>
-          </div>
-          
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsReplyModalOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              variant="primary"
-            >
-              Send Reply
-            </Button>
-          </div>
-        </form>
-      </Modal>
+        Cancel
+      </Button>
+      <Button
+        type="submit"
+        variant="primary"
+      >
+        Send Reply
+      </Button>
+    </div>
+  </form>
+</Modal>
       
       {/* View Attachment Modal */}
       <Modal

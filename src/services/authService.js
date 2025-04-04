@@ -1,5 +1,4 @@
-// src/services/authService.js
-import api from '../hooks/useAxios';
+import api from '../services/api';
 
 export const registerAdmin = async (userData) => {
   try {
@@ -15,15 +14,15 @@ export const login = async (credentials, userType) => {
     const response = await api.post(`/auth/${userType}`, credentials);
     const userData = response.data;
     
-    // Include department information
+    // Store complete user data with role information
     localStorage.setItem('token', userData.token);
     localStorage.setItem('user', JSON.stringify({
       _id: userData._id,
       username: userData.username,
       email: userData.email,
-      role: userData.role,
-      name: userData.name, // Add worker's full name
-      department: userData.department // Add department name
+      role: userData.role, // Make sure role is stored
+      name: userData.name,
+      department: userData.department
     }));
 
     return userData;
@@ -31,6 +30,7 @@ export const login = async (credentials, userType) => {
     throw error;
   }
 };
+
 
 export const logout = () => {
   localStorage.removeItem('token');
@@ -69,23 +69,30 @@ export const checkAndInitAdmin = async () => {
 
 export const refreshTokenService = async () => {
   try {
-    const currentToken = localStorage.getItem('token');
+    // Add user info to request body to ensure correct role handling
+    const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
     
-    if (!currentToken) {
-      throw new Error('No token available');
+    const response = await api.post('/auth/refresh-token', {
+      role: currentUser.role // Send role in request body
+    });
+    
+    if (response.data && response.data.token) {
+      localStorage.setItem('token', response.data.token);
+      
+      // Update user data with received data
+      if (response.data.user) {
+        // Merge existing user data with new data
+        const updatedUser = {
+          ...currentUser,
+          ...response.data.user
+        };
+        localStorage.setItem('user', JSON.stringify(updatedUser));
+      }
     }
     
-    const response = await api.post('/auth/refresh', { token: currentToken });
-    
-    // Update local storage with new token and user data
-    const { token, ...user } = response.data;
-    
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user)); 
-    
-    return { token, user };
+    return response.data;
   } catch (error) {
-    console.error('Token refresh failed', error);
+    console.error('Token refresh failed:', error);
     throw error;
   }
 };

@@ -8,16 +8,27 @@ import Button from '../common/Button';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import Spinner from '../common/Spinner';
+import { getImageUrl } from '../../utils/imageUtils';
 
 const WorkerManagement = () => {
   const [workers, setWorkers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [isLoadingDepartments, setIsLoadingDepartments] = useState(true); 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
-    setFormData(prev => ({ ...prev, photo: file }));
+    if (file) {
+      setFormData(prev => ({ ...prev, photo: file }));
+      
+      // Create a preview URL
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
 
@@ -243,6 +254,29 @@ const openEditModal = (worker) => {
   // Table columns configuration
   const columns = [
     {
+      header: 'Profile',
+      accessor: 'photo',
+      render: (worker) => (
+        <div className="flex items-center justify-center">
+          {worker.photo ? (
+            <img 
+              src={getImageUrl(worker.photo)} 
+              alt={worker.name}
+              className="w-10 h-10 rounded-full object-cover"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`;
+              }}
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">
+              {worker.name.charAt(0).toUpperCase()}
+            </div>
+          )}
+        </div>
+      )
+    },
+    {
       header: 'Name',
       accessor: 'name'
     },
@@ -383,6 +417,43 @@ const openEditModal = (worker) => {
           </div>
 
           <div className="form-group">
+  <label htmlFor="photo" className="form-label">Photo</label>
+  <div className="flex items-center">
+    {previewUrl ? (
+      <img 
+        src={previewUrl} 
+        alt="Preview" 
+        className="w-20 h-20 rounded-full object-cover mr-4"
+      />
+    ) : (
+      selectedWorker?.photo ? (
+<img 
+  src={selectedWorker.photo ? getImageUrl(selectedWorker.photo) : `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedWorker.name)}`}
+  alt="Current Photo" 
+  className="w-20 h-20 rounded-full object-cover mr-4"
+  onError={(e) => {
+    e.target.onerror = null;
+    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedWorker.name)}`;
+  }}
+/>
+      ) : (
+        <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center mr-4">
+          <span className="text-gray-500">No image</span>
+        </div>
+      )
+    )}
+    <input
+      type="file"
+      id="photo"
+      name="photo"
+      className="form-input"
+      onChange={handlePhotoChange}
+      accept="image/*"
+    />
+  </div>
+</div>
+
+          <div className="form-group">
             <label htmlFor="photo" className="form-label">Photo</label>
             <input
               type="file"
@@ -475,25 +546,33 @@ const openEditModal = (worker) => {
     </div>
     
     <div className="form-group">
-      <label htmlFor="edit-photo" className="form-label">Photo</label>
-      <div className="flex items-center">
-        {selectedWorker?.photo && (
-          <img 
-            src={`/uploads/${selectedWorker.photo}`} 
-            alt="Current Photo" 
-            className="w-20 h-20 rounded-full object-cover mr-4"
-          />
-        )}
-        <input
-          type="file"
-          id="edit-photo"
-          name="photo"
-          className="form-input"
-          onChange={handlePhotoChange}
-          accept="image/*"
-        />
+  <label htmlFor="edit-photo" className="form-label">Photo</label>
+  <div className="flex items-center">
+    {selectedWorker?.photo ? (
+      <img 
+        src={`/uploads/${selectedWorker.photo}`} 
+        alt="Current Photo" 
+        className="w-20 h-20 rounded-full object-cover mr-4"
+        onError={(e) => {
+          e.target.onerror = null;
+          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedWorker.name)}`;
+        }}
+      />
+    ) : (
+      <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center mr-4">
+        <span className="text-gray-500">No image</span>
       </div>
-    </div>
+    )}
+    <input
+      type="file"
+      id="edit-photo"
+      name="photo"
+      className="form-input"
+      onChange={handlePhotoChange}
+      accept="image/*"
+    />
+  </div>
+</div>
 
     <div className="form-group">
   <label htmlFor="edit-department" className="form-label">Department</label>

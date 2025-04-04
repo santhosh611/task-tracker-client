@@ -3,9 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { 
   FaSearch, 
-  FaFilter, 
-  FaChevronLeft, 
-  FaChevronRight 
+  FaEye, 
+  FaEyeSlash 
 } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
 import { getPublicWorkers } from '../../services/workerService';
@@ -18,10 +17,12 @@ const WorkerLogin = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedWorker, setSelectedWorker] = useState(null);
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingWorkers, setIsLoadingWorkers] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [department, setDepartment] = useState('All');
+  const API_BASE_URL = 'http://localhost:5000';
 
   const navigate = useNavigate();
   const { login } = useAuth();
@@ -79,6 +80,11 @@ const WorkerLogin = () => {
   // Departments List
   const departments = ['All', ...new Set(workers.map(w => w.department).filter(Boolean))];
 
+  useEffect(() => {
+    setPassword('');
+    setShowPassword(false);
+  }, [selectedWorker]);
+  
   // Login Handler
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -105,6 +111,41 @@ const WorkerLogin = () => {
     }
   };
 
+  const PasswordInput = ({ 
+    value, 
+    onChange, 
+    placeholder = "Enter your password", 
+    name = "password",
+    showStrengthMeter = true 
+  }) => {
+    const [showPassword, setShowPassword] = useState(false);
+    const [passwordStrength, setPasswordStrength] = useState(0);
+  
+    const calculatePasswordStrength = (password) => {
+      let strength = 0;
+      if (password.length > 7) strength += 1;
+      if (/[A-Z]/.test(password)) strength += 1;
+      if (/[a-z]/.test(password)) strength += 1;
+      if (/[0-9]/.test(password)) strength += 1;
+      if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+      return strength;
+    };
+  
+    const handlePasswordChange = (e) => {
+      const newPassword = e.target.value;
+      onChange(e);
+      const strength = calculatePasswordStrength(newPassword);
+      setPasswordStrength(strength);
+    };
+  
+    const strengthColors = [
+      'bg-red-500', 
+      'bg-orange-500', 
+      'bg-yellow-500', 
+      'bg-green-500', 
+      'bg-green-700'
+    ];
+  }
   // Pagination Logic
   const renderPagination = () => {
     if (totalPages <= 1) return null;
@@ -213,26 +254,43 @@ const WorkerLogin = () => {
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
               {paginatedWorkers.map((worker) => (
                 <div
-                  key={worker._id}
-                  onClick={() => setSelectedWorker(worker)}
-                  className={`
-                    cursor-pointer 
-                    p-4 
-                    rounded-lg 
-                    text-center 
-                    transition-all 
-                    hover:shadow-lg 
-                    ${selectedWorker?._id === worker._id 
-                      ? 'bg-primary/10 border-2 border-primary' 
-                      : 'bg-white border border-gray-200'}
-                  `}
-                >
-                  <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-primary text-white flex items-center justify-center font-bold text-2xl">
-                    {worker.name.charAt(0).toUpperCase()}
-                  </div>
-                  <h3 className="font-medium truncate">{worker.name}</h3>
-                  <p className="text-xs text-gray-500 truncate">{worker.department}</p>
-                </div>
+                key={worker._id}
+                onClick={() => setSelectedWorker(worker)}
+                className={`
+                  cursor-pointer 
+                  p-4 
+                  rounded-lg 
+                  text-center 
+                  transition-all 
+                  hover:shadow-lg 
+                  ${selectedWorker?._id === worker._id 
+                    ? 'bg-primary/10 border-2 border-primary' 
+                    : 'bg-white border border-gray-200'}
+                `}
+              >
+{worker.photo ? (
+  <img 
+    src={`${API_BASE_URL}/uploads/${worker.photo}`} 
+    alt={worker.name}
+    onError={(e) => {
+      console.log("Image failed to load:", worker.photo);
+      e.target.onerror = null;
+      // Fall back to the initials display
+      e.target.style.display = 'none';
+      e.target.parentNode.querySelector('.fallback-initials').style.display = 'flex';
+    }}
+    className="w-20 h-20 rounded-full mx-auto mb-2 object-cover"
+  />
+) : null}
+<div 
+  className="fallback-initials w-20 h-20 rounded-full mx-auto mb-2 bg-gray-200 text-gray-800 flex items-center justify-center font-bold text-2xl"
+  style={{display: worker.photo ? 'none' : 'flex'}}
+>
+  {worker.name.substring(0, 2).toUpperCase()}
+</div>
+<h3 className="font-medium truncate">{worker.name}</h3>
+<p className="text-xs text-gray-500 truncate">{worker.department}</p>
+              </div>
               ))}
             </div>
 
@@ -241,13 +299,26 @@ const WorkerLogin = () => {
         )}
 
         {/* Login Modal */}
-        {selectedWorker && (
+{/* Login Modal */}
+{selectedWorker && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
               <div className="flex items-center mb-6">
-                <div className="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center font-bold text-3xl mr-4">
-                  {selectedWorker.name.charAt(0).toUpperCase()}
-                </div>
+                {selectedWorker.photo ? (
+                  <img 
+                    src={`${API_BASE_URL}/uploads/${selectedWorker.photo}`} 
+                    alt={selectedWorker.name}
+                    className="w-16 h-16 rounded-full object-cover mr-4"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedWorker.name)}&size=64`;
+                    }}
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-primary text-white flex items-center justify-center font-bold text-3xl mr-4">
+                    {selectedWorker.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <div>
                   <h2 className="text-xl font-semibold">{selectedWorker.name}</h2>
                   <p className="text-gray-500">{selectedWorker.department}</p>
@@ -261,20 +332,30 @@ const WorkerLogin = () => {
               </div>
 
               <form onSubmit={handleLogin}>
-                <input
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg mb-4"
-                  required
-                />
+                <div className="relative">
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    placeholder="Enter your password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg pr-10"
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-600 hover:text-primary"
+                  >
+                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
 
                 <Button
                   type="submit"
                   variant="primary"
                   fullWidth
                   disabled={isLoading}
+                  className="mt-4"
                 >
                   {isLoading ? <Spinner size="sm" /> : 'Login'}
                 </Button>

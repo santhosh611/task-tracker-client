@@ -1,9 +1,116 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaEye, FaEyeSlash, FaLock } from 'react-icons/fa';
 import { registerAdmin } from '../../services/authService';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
+
+// PasswordInput Component (same as in AdminLogin)
+const PasswordInput = ({ 
+  value, 
+  onChange, 
+  placeholder = "Enter your password", 
+  name = "password",
+  showStrengthMeter = true 
+}) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState(0);
+
+  const calculatePasswordStrength = (password) => {
+    let strength = 0;
+    if (password.length > 7) strength += 1;
+    if (/[A-Z]/.test(password)) strength += 1;
+    if (/[a-z]/.test(password)) strength += 1;
+    if (/[0-9]/.test(password)) strength += 1;
+    if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+    return strength;
+  };
+
+  const handlePasswordChange = (e) => {
+    const newPassword = e.target.value;
+    onChange(e);
+    const strength = calculatePasswordStrength(newPassword);
+    setPasswordStrength(strength);
+  };
+
+  const strengthColors = [
+    'bg-red-500', 
+    'bg-orange-500', 
+    'bg-yellow-500', 
+    'bg-green-500', 
+    'bg-green-700'
+  ];
+
+  return (
+    <div className="form-group relative">
+      <label htmlFor={name} className="form-label flex items-center">
+        <FaLock className="mr-2 text-primary" />
+        {name === 'password' ? 'Password' : 'Confirm Password'}
+      </label>
+      <div className="relative">
+        <input
+          type={showPassword ? "text" : "password"}
+          id={name}
+          name={name}
+          className="form-input group-hover:border-primary transition-all duration-300 pr-12"
+          value={value}
+          onChange={handlePasswordChange}
+          placeholder={placeholder}
+          required
+        />
+        <button
+          type="button"
+          onClick={() => setShowPassword(!showPassword)}
+          className="absolute inset-y-0 right-0 px-3 flex items-center text-gray-600 hover:text-primary transition-colors"
+        >
+          <AnimatePresence mode="wait">
+            {showPassword ? (
+              <motion.div
+                key="hide"
+                initial={{ opacity: 0, rotate: -180 }}
+                animate={{ opacity: 1, rotate: 0 }}
+                exit={{ opacity: 0, rotate: 180 }}
+                transition={{ duration: 0.2 }}
+              >
+                <FaEyeSlash />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="show"
+                initial={{ opacity: 0, rotate: 180 }}
+                animate={{ opacity: 1, rotate: 0 }}
+                exit={{ opacity: 0, rotate: -180 }}
+                transition={{ duration: 0.2 }}
+              >
+                <FaEye />
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </button>
+      </div>
+
+      {showStrengthMeter && name === 'password' && (
+        <>
+          <div className="mt-1 h-1 w-full bg-gray-200 rounded-full overflow-hidden">
+            <motion.div 
+              className={`h-full ${strengthColors[passwordStrength]}`}
+              initial={{ width: 0 }}
+              animate={{ width: `${(passwordStrength / 5) * 100}%` }}
+              transition={{ duration: 0.3 }}
+            />
+          </div>
+          <div className="text-xs mt-1 text-gray-600">
+            {passwordStrength <= 1 && "Weak password"}
+            {passwordStrength === 2 && "Medium strength"}
+            {passwordStrength >= 3 && "Strong password"}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 const AdminRegister = () => {
   const [formData, setFormData] = useState({
@@ -13,24 +120,7 @@ const AdminRegister = () => {
     confirmPassword: ''
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [backgroundShapes, setBackgroundShapes] = useState([]);
   const navigate = useNavigate();
-
-  // Animated background shapes
-  useEffect(() => {
-    const generateShapes = () => {
-      return Array.from({ length: 5 }, (_, index) => ({
-        id: index,
-        size: Math.random() * 100 + 50,
-        left: Math.random() * 100,
-        animationDuration: Math.random() * 20 + 10,
-        delay: Math.random() * 5,
-        color: ['bg-primary/10', 'bg-secondary/10', 'bg-blue-200/10'][Math.floor(Math.random() * 3)]
-      }));
-    };
-
-    setBackgroundShapes(generateShapes());
-  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,7 +137,11 @@ const AdminRegister = () => {
 
     setIsLoading(true);
     try {
-      await registerAdmin(formData);
+      await registerAdmin({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password
+      });
       toast.success('Registration successful! Please login.');
       navigate('/admin/login');
     } catch (error) {
@@ -58,71 +152,32 @@ const AdminRegister = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 overflow-hidden relative">
-      {/* Animated Background Shapes */}
-      {backgroundShapes.map((shape) => (
-        <div
-          key={shape.id}
-          className={`
-            absolute 
-            rounded-full 
-            ${shape.color}
-            animate-float
-            opacity-50
-          `}
-          style={{
-            width: `${shape.size}px`,
-            height: `${shape.size}px`,
-            left: `${shape.left}%`,
-            top: `${Math.random() * 100}%`,
-            animationDuration: `${shape.animationDuration}s`,
-            animationDelay: `${shape.delay}s`
-          }}
-        />
-      ))}
-
-      <Card className="w-full max-w-md z-10 relative shadow-2xl">
-        <div className="absolute top-0 right-0 w-24 h-24 bg-primary/10 rounded-full blur-2xl transform translate-x-1/2 -translate-y-1/2"></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-secondary/10 rounded-full blur-2xl transform -translate-x-1/2 translate-y-1/2"></div>
-
-        <h1 className="text-3xl font-bold mb-8 text-center text-gray-800 relative">
-          Create Admin Account
-          <span className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-16 h-1 bg-primary rounded"></span>
-        </h1>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <Card className="w-full max-w-md">
+        <h1 className="text-3xl font-bold mb-8 text-center">Create Admin Account</h1>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="form-group">
-            <label htmlFor="username" className="form-label flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-              </svg>
-              Username
-            </label>
+            <label htmlFor="username" className="form-label">Username</label>
             <input
               type="text"
               id="username"
               name="username"
-              className="form-input group-hover:border-primary transition-all duration-300"
+              className="form-input"
               value={formData.username}
               onChange={handleChange}
               required
-              placeholder="Enter your username"
+              placeholder="Choose a username"
             />
           </div>
           
           <div className="form-group">
-            <label htmlFor="email" className="form-label flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
-                <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-              </svg>
-              Email
-            </label>
+            <label htmlFor="email" className="form-label">Email</label>
             <input
               type="email"
               id="email"
               name="email"
-              className="form-input group-hover:border-primary transition-all duration-300"
+              className="form-input"
               value={formData.email}
               onChange={handleChange}
               required
@@ -130,52 +185,26 @@ const AdminRegister = () => {
             />
           </div>
           
-          <div className="form-group">
-            <label htmlFor="password" className="form-label flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-              </svg>
-              Password
-            </label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              className="form-input group-hover:border-primary transition-all duration-300"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              minLength="6"
-              placeholder="Enter your password"
-            />
-          </div>
+          <PasswordInput 
+            value={formData.password}
+            onChange={handleChange}
+            name="password"
+            showStrengthMeter={true}
+          />
           
-          <div className="form-group">
-            <label htmlFor="confirmPassword" className="form-label flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-primary" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
-              </svg>
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              id="confirmPassword"
-              name="confirmPassword"
-              className="form-input group-hover:border-primary transition-all duration-300"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              minLength="6"
-              placeholder="Confirm your password"
-            />
-          </div>
+          <PasswordInput 
+            value={formData.confirmPassword}
+            onChange={handleChange}
+            name="confirmPassword"
+            placeholder="Confirm your password"
+            showStrengthMeter={false}
+          />
           
           <Button
             type="submit"
             variant="primary"
             fullWidth
             disabled={isLoading}
-            className="hover:scale-105 transition-transform duration-300"
           >
             {isLoading ? 'Registering...' : 'Create Account'}
           </Button>
@@ -185,7 +214,7 @@ const AdminRegister = () => {
           Already have an account?{' '}
           <Link 
             to="/admin/login" 
-            className="text-primary hover:underline font-semibold"
+            className="text-primary hover:underline"
           >
             Sign In
           </Link>

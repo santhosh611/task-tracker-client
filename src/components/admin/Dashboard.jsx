@@ -9,6 +9,7 @@ import { getTopics } from '../../services/topicService';
 import { getColumns } from '../../services/columnService';
 import Card from '../common/Card';
 import Spinner from '../common/Spinner';
+import { getImageUrl } from '../../utils/imageUtils';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -29,6 +30,7 @@ const Dashboard = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [topWorkers, setTopWorkers] = useState([]);
+  
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -193,10 +195,14 @@ const Dashboard = () => {
                 <div key={worker._id} className="flex items-center">
                   <span className="text-lg font-bold w-8">{index + 1}</span>
                   <img
-                    src={worker.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`}
-                    alt={worker.name}
-                    className="w-10 h-10 rounded-full mr-3 object-cover"
-                  />
+  src={worker.photo ? getImageUrl(worker.photo) : `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`}
+  alt={worker.name}
+  className="w-10 h-10 rounded-full mr-3 object-cover"
+  onError={(e) => {
+    e.target.onerror = null;
+    e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`;
+  }}
+/>
                   <div className="flex-1">
                     <p className="font-medium">{worker.name}</p>
                     <p className="text-sm text-gray-500">{worker.department}</p>
