@@ -7,5 +7,5 @@
  */
 export const getImageUrl = (imagePath) => {
     if (!imagePath) return null;
-    return `https://task-tracker-backend-2jqf.onrender.com/uploads/${imagePath}`;
+    return `${import.meta.env.VITE_API_BASE_URL}/uploads/${imagePath}`;
   };

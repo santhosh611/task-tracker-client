@@ -17,7 +17,7 @@ import {
 } from '../../services/commentService';
 import Sidebar from './Sidebar';
 
-const API_BASE_URL = 'http://localhost:5000';
+const API_BASE_URL = 'https://task-tracker-backend-2jqf.onrender.com/api'; 
 
 const WorkerLayout = ({ children }) => {
   const { user, logout } = useAuth();
