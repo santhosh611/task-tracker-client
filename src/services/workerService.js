@@ -61,9 +61,15 @@ export const getWorkers = async () => {
     return [];
   }
 };
-export const getPublicWorkers = async () => {
+export const getPublicWorkers = async (subdomain) => {
   try {
-    const response = await api.get('/workers/public');
+    const token = getAuthToken();
+    const response = await api.post('/workers/public', subdomain, {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
     return response.data || [];
   } catch (error) {
     console.error('Public workers fetch error:', error);
