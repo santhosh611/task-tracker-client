@@ -23,6 +23,7 @@ export const getMyLeaves = async () => {
 // Create leave
 export const createLeave = async (leaveData) => {
   try {
+    // Use normal JSON content type, not multipart/form-data
     const response = await api.post('/leaves', leaveData);
     return response.data;
   } catch (error) {

@@ -135,18 +135,23 @@ const LeaveRequests = () => {
                   </div>
                   
                   {leave.document && (
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Supporting Document</p>
-                      <a 
-                        href={leave.document}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 hover:underline"
-                      >
-                        View Document
-                      </a>
-                    </div>
-                  )}
+  <div className="mb-4">
+    <p className="text-sm text-gray-500 mb-1">Supporting Document</p>
+    {leave.document.startsWith('http') ? (
+      // Display Cloudinary image if URL starts with http
+      <img 
+        src={leave.document} 
+        alt="Supporting document" 
+        className="max-w-xs rounded-md border border-gray-200" 
+        onClick={() => window.open(leave.document, '_blank')}
+        style={{ cursor: 'pointer' }}
+      />
+    ) : (
+      // Display "No image available" text if document URL is invalid
+      <p>Image not available</p>
+    )}
+  </div>
+)}
                 </div>
               </div>
             ))}

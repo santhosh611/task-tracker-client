@@ -51,13 +51,29 @@ const ApplyForLeave = () => {
   const handleDocumentChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+      console.log('Selected file:', file.name, 'Size:', (file.size / 1024).toFixed(2), 'KB');
+      
+      // Check file size (limit to 1MB for base64)
+      if (file.size > 1 * 1024 * 1024) {
+        toast.error('Image size should be less than 1MB');
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onloadend = () => {
+        console.log('File converted to base64, length:', reader.result.length);
         setFormData(prev => ({ ...prev, document: reader.result }));
+      };
+      reader.onerror = () => {
+        console.error('FileReader error');
+        toast.error('Error reading file');
       };
       reader.readAsDataURL(file);
     }
   };
+  
+  
+  
   
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -70,10 +86,14 @@ const ApplyForLeave = () => {
     setIsSubmitting(true);
     
     try {
-      const token = localStorage.getItem('token');
+      // Just send the data as JSON with the base64 image
       await createLeave({
-        ...formData,
-        totalDays: parseInt(formData.totalDays)
+        leaveType: formData.leaveType,
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        totalDays: formData.totalDays,
+        reason: formData.reason,
+        document: formData.document // This is the base64 image data
       });
       
       toast.success('Leave application submitted successfully!');
