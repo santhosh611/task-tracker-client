@@ -31,6 +31,7 @@ const WorkerManagement = () => {
   const [formData, setFormData] = useState({
     name: '',
     username: '',
+    email: '',
     password: '',
     confirmPassword: '',
     department: '',
@@ -93,6 +94,7 @@ const WorkerManagement = () => {
     setFormData({
       name: '',
       username: '',
+      email: '',
       password: '',
       department: departments.length > 0 ? departments[0]._id : '', // Ensure first department is selected
       photo: ''
@@ -132,6 +134,7 @@ const WorkerManagement = () => {
 
     const trimmedName = formData.name.trim();
     const trimmedUsername = formData.username.trim();
+    const trimmedEmail = formData.email.trim();
     const trimmedPassword = formData.password.trim();
 
     // Validation checks
@@ -147,6 +150,11 @@ const WorkerManagement = () => {
 
     if (!trimmedUsername) {
       toast.error('Username is required and cannot be empty');
+      return;
+    }
+    
+    if (!trimmedEmail) {
+      toast.error('Email is required and cannot be empty');
       return;
     }
 
@@ -165,6 +173,7 @@ const WorkerManagement = () => {
         ...formData,
         name: trimmedName,
         username: trimmedUsername,
+        email: trimmedEmail,
         subdomain,
         password: trimmedPassword,
         photo: formData.photo || ''
@@ -348,6 +357,19 @@ const WorkerManagement = () => {
               name="username"
               className="form-input"
               value={formData.username}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="email" className="form-label">Email</label>
+            <input
+              type="text"
+              id="email"
+              name="email"
+              className="form-input"
+              value={formData.email}
               onChange={handleChange}
               required
             />
