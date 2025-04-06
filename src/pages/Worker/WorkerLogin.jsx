@@ -1,17 +1,18 @@
 import { useState, useEffect, useCallback, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { 
-  FaSearch, 
-  FaFilter, 
-  FaChevronLeft, 
-  FaChevronRight 
+import {
+  FaSearch,
+  FaFilter,
+  FaChevronLeft,
+  FaChevronRight
 } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
 import { getPublicWorkers } from '../../services/workerService';
 import Button from '../../components/common/Button';
 import Spinner from '../../components/common/Spinner';
 import appContext from '../../context/AppContext';
+import { IoMdRefresh } from "react-icons/io";
 
 const WorkerLogin = () => {
   const [workers, setWorkers] = useState([]);
@@ -45,7 +46,6 @@ const WorkerLogin = () => {
       setIsLoadingWorkers(true);
       console.log(subdomain);
       const workersData = await getPublicWorkers({ subdomain });
-      console.log(workersData);
       setWorkers(workersData || []);
     } catch (error) {
       console.error('Worker load error:', error);
@@ -63,11 +63,11 @@ const WorkerLogin = () => {
   useEffect(() => {
     const filterWorkers = () => {
       const filtered = workers.filter(worker => {
-        const matchesSearch = !searchTerm || 
+        const matchesSearch = !searchTerm ||
           worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           (worker.department && worker.department.toLowerCase().includes(searchTerm.toLowerCase()));
-        
-        const matchesDepartment = department === 'All' || 
+
+        const matchesDepartment = department === 'All' ||
           worker.department === department;
 
         return matchesSearch && matchesDepartment;
@@ -82,7 +82,7 @@ const WorkerLogin = () => {
 
   // Paginated Workers
   const paginatedWorkers = filteredWorkers.slice(
-    (currentPage - 1) * workersPerPage, 
+    (currentPage - 1) * workersPerPage,
     currentPage * workersPerPage
   );
 
@@ -92,20 +92,20 @@ const WorkerLogin = () => {
   // Login Handler
   const handleLogin = async (e) => {
     e.preventDefault();
-    
+
     if (!selectedWorker || !password) {
       toast.error('Please select a worker and enter password');
       return;
     }
-    
+
     setIsLoading(true);
-    
+
     try {
-      await login({ 
-        username: selectedWorker.username, 
-        password 
+      await login({
+        username: selectedWorker.username,
+        password
       }, 'worker');
-      
+
       toast.success(`Welcome, ${selectedWorker.name}!`);
       navigate('/worker');
     } catch (error) {
@@ -131,8 +131,8 @@ const WorkerLogin = () => {
     // Previous button
     if (currentPage > 1) {
       pageNumbers.push(
-        <button 
-          key="prev" 
+        <button
+          key="prev"
           onClick={() => setCurrentPage(currentPage - 1)}
           className="px-3 py-1 bg-gray-200 rounded"
         >
@@ -149,8 +149,8 @@ const WorkerLogin = () => {
           onClick={() => setCurrentPage(i)}
           className={`
             px-4 py-1 
-            ${currentPage === i 
-              ? 'bg-primary text-white' 
+            ${currentPage === i
+              ? 'bg-primary text-white'
               : 'bg-gray-200 text-gray-700'}
             rounded
           `}
@@ -163,8 +163,8 @@ const WorkerLogin = () => {
     // Next button
     if (currentPage < totalPages) {
       pageNumbers.push(
-        <button 
-          key="next" 
+        <button
+          key="next"
           onClick={() => setCurrentPage(currentPage + 1)}
           className="px-3 py-1 bg-gray-200 rounded"
         >
@@ -185,7 +185,7 @@ const WorkerLogin = () => {
       <div className="container mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Worker Login</h1>
-          
+
           <div className="flex space-x-4">
             <div className="relative flex-grow">
               <input
@@ -217,6 +217,27 @@ const WorkerLogin = () => {
         ) : filteredWorkers.length === 0 ? (
           <div className="text-center py-16 text-gray-500">
             No workers found. Try adjusting your search or filter.
+            <button
+              className='block mx-auto bg-white border border-gray-300 p-2 my-2 rounded-md'
+              onClick={async () => {
+                try {
+                  if (!subdomain || subdomain == 'main') {
+                    toast.error('Subdomain is missing, check the URL.');
+                    return;
+                  }
+                  setIsLoadingWorkers(true);
+                  const workersData = await getPublicWorkers({ subdomain });
+                  setWorkers(workersData || []);
+                } catch (error) {
+                  console.error('Worker load error:', error);
+                  toast.error('Failed to load workers. Please try again later.');
+                } finally {
+                  setIsLoadingWorkers(false);
+                }
+              }}
+            >
+              <IoMdRefresh />
+            </button>
           </div>
         ) : (
           <>
@@ -232,8 +253,8 @@ const WorkerLogin = () => {
                     text-center 
                     transition-all 
                     hover:shadow-lg 
-                    ${selectedWorker?._id === worker._id 
-                      ? 'bg-primary/10 border-2 border-primary' 
+                    ${selectedWorker?._id === worker._id
+                      ? 'bg-primary/10 border-2 border-primary'
                       : 'bg-white border border-gray-200'}
                   `}
                 >
@@ -262,7 +283,7 @@ const WorkerLogin = () => {
                   <h2 className="text-xl font-semibold">{selectedWorker.name}</h2>
                   <p className="text-gray-500">{selectedWorker.department}</p>
                 </div>
-                <button 
+                <button
                   onClick={() => setSelectedWorker(null)}
                   className="ml-auto text-gray-500 hover:text-gray-700"
                 >
