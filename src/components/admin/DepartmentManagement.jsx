@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
 import { getDepartments, createDepartment, deleteDepartment,updateDepartment } from '../../services/departmentService';
@@ -6,6 +6,7 @@ import Card from '../common/Card';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
 import Spinner from '../common/Spinner';
+import appContext from '../../context/AppContext';
 
 const DepartmentManagement = () => {
   const [departments, setDepartments] = useState([]);
@@ -17,11 +18,16 @@ const DepartmentManagement = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState(null);
 
+  const { subdomain } = useContext(appContext);
 
   const loadDepartments = async () => {
     setIsLoading(true);
+    if (!subdomain || subdomain == 'main') {
+      return;
+    }
+
     try {
-      const departmentsData = await getDepartments();
+      const departmentsData = await getDepartments({ subdomain });
       console.log('Departments Loaded:', departmentsData);
       
       // Ensure departmentsData is an array and has unique identifiers
@@ -56,10 +62,16 @@ const DepartmentManagement = () => {
       toast.error('Department name cannot be empty');
       return;
     }
+
+    if (!subdomain || subdomain == 'main') {
+      console.log(subdomain);
+      toast.error('Subdomain is missing, check the URL.');
+      return;
+    }
     
     try {
       // Create department
-      const newDepartment = await createDepartment({ name: trimmedName });
+      const newDepartment = await createDepartment({ name: trimmedName, subdomain });
       
       // Add a unique key to the new department
       const departmentWithKey = {
