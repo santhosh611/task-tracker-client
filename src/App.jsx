@@ -28,6 +28,7 @@ import PrivateRoute from './components/common/PrivateRoute';
 // Context
 import appContext from './context/AppContext';
 import { useEffect, useState } from 'react';
+import AttendanceManagement from './components/admin/AttendanceManagement';
 
 function getSubdomain() {
   const host = window.location.hostname; // e.g., company1.localhost
@@ -71,6 +72,7 @@ function App() {
           <Route path="/admin/*" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="workers" element={<WorkerManagement />} />
+            <Route path="attendance" element={<AttendanceManagement />} />
             <Route path="departments" element={<DepartmentManagement />} />
             <Route path="columns" element={<ColumnManagement />} />
             <Route path="tasks" element={<TaskManagement />} />

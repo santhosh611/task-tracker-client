@@ -11,7 +11,7 @@ import {
   FaTags,
   FaPizzaSlice,
   FaClipboardList,
-
+  FaRegCalendarCheck
 } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
 import { getAllLeaves } from '../../services/leaveService';
@@ -70,6 +70,11 @@ const AdminLayout = () => {
       to: '/admin/workers',
       icon: <FaUsers />,
       label: 'Workers'
+    },
+    {
+      to: '/admin/attendance',
+      icon: <FaRegCalendarCheck />,
+      label: 'Attendance'
     },
     {
       to: '/admin/departments',

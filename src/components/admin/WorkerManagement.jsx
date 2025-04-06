@@ -300,6 +300,7 @@ const WorkerManagement = () => {
         <Button
           variant="primary"
           onClick={openAddModal}
+          className='flex items-center'
         >
           <FaPlus className="mr-2" /> Add Worker
         </Button>
