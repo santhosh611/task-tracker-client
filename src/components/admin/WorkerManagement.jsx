@@ -15,20 +15,18 @@ const WorkerManagement = () => {
   const [departments, setDepartments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isLoadingDepartments, setIsLoadingDepartments] = useState(true); 
+  const [isLoadingDepartments, setIsLoadingDepartments] = useState(true);
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     setFormData(prev => ({ ...prev, photo: file }));
   };
 
-
-  
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedWorker, setSelectedWorker] = useState(null);
-  
+
   // Form states
   const [formData, setFormData] = useState({
     name: '',
@@ -47,10 +45,10 @@ const WorkerManagement = () => {
     const loadData = async () => {
       setIsLoading(true);
       setIsLoadingDepartments(true);
-      
+
       try {
         const [workersData, departmentsData] = await Promise.all([
-          getWorkers(),
+          getWorkers({ subdomain }),
           getDepartments()
         ]);
 
@@ -71,7 +69,7 @@ const WorkerManagement = () => {
         setIsLoadingDepartments(false);
       }
     };
-    
+
     loadData();
   }, []);
 
@@ -82,12 +80,12 @@ const WorkerManagement = () => {
   };
 
   // Filter workers
-  const filteredWorkers = Array.isArray(workers) 
+  const filteredWorkers = Array.isArray(workers)
     ? workers.filter(
-        worker =>
-          worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (worker.department && worker.department.toLowerCase().includes(searchTerm.toLowerCase()))
-      )
+      worker =>
+        worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (worker.department && worker.department.toLowerCase().includes(searchTerm.toLowerCase()))
+    )
     : [];
 
   // Open add worker modal
@@ -104,24 +102,24 @@ const WorkerManagement = () => {
 
 
 
-// Open edit worker modal
-const openEditModal = (worker) => {
-  // Determine the correct department ID
-  const departmentId = typeof worker.department === 'object' 
-    ? worker.department._id 
-    : (departments.find(dept => dept.name === worker.department)?._id || worker.department);
+  // Open edit worker modal
+  const openEditModal = (worker) => {
+    // Determine the correct department ID
+    const departmentId = typeof worker.department === 'object'
+      ? worker.department._id
+      : (departments.find(dept => dept.name === worker.department)?._id || worker.department);
 
-  setSelectedWorker(worker);
-  setFormData({
-    name: worker.name,
-    username: worker.username,
-    department: departmentId, // Use the department ID
-    photo: worker.photo || '',
-    password: '',
-    confirmPassword: ''
-  });
-  setIsEditModalOpen(true);
-};
+    setSelectedWorker(worker);
+    setFormData({
+      name: worker.name,
+      username: worker.username,
+      department: departmentId, // Use the department ID
+      photo: worker.photo || '',
+      password: '',
+      confirmPassword: ''
+    });
+    setIsEditModalOpen(true);
+  };
   // Open delete worker modal
   const openDeleteModal = (worker) => {
     setSelectedWorker(worker);
@@ -131,7 +129,7 @@ const openEditModal = (worker) => {
   // Handle add worker
   const handleAddWorker = async (e) => {
     e.preventDefault();
-    
+
     const trimmedName = formData.name.trim();
     const trimmedUsername = formData.username.trim();
     const trimmedPassword = formData.password.trim();
@@ -146,22 +144,22 @@ const openEditModal = (worker) => {
       toast.error('Name is required and cannot be empty');
       return;
     }
-    
+
     if (!trimmedUsername) {
       toast.error('Username is required and cannot be empty');
       return;
     }
-    
+
     if (!trimmedPassword) {
       toast.error('Password is required and cannot be empty');
       return;
     }
-    
+
     if (!formData.department) {
       toast.error('Department is required');
       return;
     }
-  
+
     try {
       const newWorker = await createWorker({
         ...formData,
@@ -171,7 +169,7 @@ const openEditModal = (worker) => {
         password: trimmedPassword,
         photo: formData.photo || ''
       });
-      
+
       setWorkers(prev => [...prev, newWorker]);
       setIsAddModalOpen(false);
       toast.success('Worker added successfully');
@@ -184,13 +182,13 @@ const openEditModal = (worker) => {
   // Handle edit worker
   const handleEditWorker = async (e) => {
     e.preventDefault();
-    
+
     // Validate inputs
     if (!formData.name || !formData.username || !formData.department) {
       toast.error('Please fill in all required fields');
       return;
     }
-    
+
     // Password validation if provided
     if (formData.password) {
       if (formData.password !== formData.confirmPassword) {
@@ -202,26 +200,26 @@ const openEditModal = (worker) => {
         return;
       }
     }
-    
+
     try {
-      const updateData = { 
+      const updateData = {
         name: formData.name,
         username: formData.username,
         department: formData.department // Always include department
       };
-      
+
       // Only add password if provided
       if (formData.password) {
         updateData.password = formData.password;
       }
-      
+
       // Only include photo if a new file is selected
       if (formData.photo instanceof File) {
         updateData.photo = formData.photo;
       }
-      
+
       const updatedWorker = await updateWorker(selectedWorker._id, updateData);
-      
+
       setWorkers(prev =>
         prev.map(worker =>
           worker._id === selectedWorker._id ? {
@@ -230,7 +228,7 @@ const openEditModal = (worker) => {
           } : worker
         )
       );
-      
+
       setIsEditModalOpen(false);
       toast.success('Worker updated successfully');
     } catch (error) {
@@ -269,13 +267,13 @@ const openEditModal = (worker) => {
       accessor: 'actions',
       render: (worker) => (
         <div className="flex space-x-2">
-          <button 
+          <button
             onClick={() => openEditModal(worker)}
             className="p-1 text-blue-600 hover:text-blue-800"
           >
             <FaEdit />
           </button>
-          <button 
+          <button
             onClick={() => openDeleteModal(worker)}
             className="p-1 text-red-600 hover:text-red-800"
           >
@@ -297,7 +295,7 @@ const openEditModal = (worker) => {
           <FaPlus className="mr-2" /> Add Worker
         </Button>
       </div>
-      
+
       <Card>
         <div className="mb-4">
           <input
@@ -308,7 +306,7 @@ const openEditModal = (worker) => {
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        
+
         {isLoading ? (
           <div className="flex justify-center py-8">
             <Spinner size="lg" />
@@ -321,7 +319,7 @@ const openEditModal = (worker) => {
           />
         )}
       </Card>
-      
+
       {/* Add Worker Modal */}
       <Modal
         isOpen={isAddModalOpen}
@@ -341,7 +339,7 @@ const openEditModal = (worker) => {
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="username" className="form-label">Username</label>
             <input
@@ -354,7 +352,7 @@ const openEditModal = (worker) => {
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="password" className="form-label">Password</label>
             <input
@@ -367,29 +365,29 @@ const openEditModal = (worker) => {
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="department" className="form-label">Department</label>
             <select
-  id="department"
-  name="department" 
-  value={formData.department}
-  onChange={handleChange}
-  required
->
-  {departments.length === 0 ? (
-    <option value="">No departments available</option>
-  ) : (
-    <>
-      <option value="">Select Department</option>
-      {departments.map(dept => (
-        <option key={dept._id} value={dept._id}>
-          {dept.name}
-        </option>
-      ))}
-    </>
-  )}
-</select>
+              id="department"
+              name="department"
+              value={formData.department}
+              onChange={handleChange}
+              required
+            >
+              {departments.length === 0 ? (
+                <option value="">No departments available</option>
+              ) : (
+                <>
+                  <option value="">Select Department</option>
+                  {departments.map(dept => (
+                    <option key={dept._id} value={dept._id}>
+                      {dept.name}
+                    </option>
+                  ))}
+                </>
+              )}
+            </select>
           </div>
 
           <div className="form-group">
@@ -403,7 +401,7 @@ const openEditModal = (worker) => {
               accept="image/*"
             />
           </div>
-          
+
           <div className="flex justify-end mt-6 space-x-2">
             <Button
               type="button"
@@ -423,126 +421,126 @@ const openEditModal = (worker) => {
       </Modal>
 
       {/* Edit Worker Modal */}
-{/* Edit Worker Modal */}
-{/* Edit Worker Modal */}
-<Modal
-  isOpen={isEditModalOpen}
-  onClose={() => setIsEditModalOpen(false)}
-  title={`Edit Worker: ${selectedWorker?.name}`}
->
-  <form onSubmit={handleEditWorker}>
-    <div className="form-group">
-      <label htmlFor="edit-name" className="form-label">Name</label>
-      <input
-        type="text"
-        id="edit-name"
-        name="name"
-        className="form-input"
-        value={formData.name}
-        onChange={handleChange}
-        required
-      />
-    </div>
-    
-    <div className="form-group">
-      <label htmlFor="edit-username" className="form-label">Username</label>
-      <input
-        type="text"
-        id="edit-username"
-        name="username"
-        className="form-input"
-        value={formData.username}
-        onChange={handleChange}
-        required
-      />
-    </div>
-    
-    {/* New Password Fields */}
-    <div className="form-group">
-      <label htmlFor="edit-password" className="form-label">New Password (optional)</label>
-      <input
-        type="password"
-        id="edit-password"
-        name="password"
-        className="form-input"
-        value={formData.password}
-        onChange={handleChange}
-        placeholder="Leave blank to keep current password"
-      />
-    </div>
-    
-    <div className="form-group">
-      <label htmlFor="edit-confirm-password" className="form-label">Confirm New Password</label>
-      <input
-        type="password"
-        id="edit-confirm-password"
-        name="confirmPassword"
-        className="form-input"
-        value={formData.confirmPassword || ''}
-        onChange={handleChange}
-        placeholder="Confirm new password"
-      />
-    </div>
-    
-    <div className="form-group">
-      <label htmlFor="edit-photo" className="form-label">Photo</label>
-      <div className="flex items-center">
-        {selectedWorker?.photo && (
-          <img 
-            src={`/uploads/${selectedWorker.photo}`} 
-            alt="Current Photo" 
-            className="w-20 h-20 rounded-full object-cover mr-4"
-          />
-        )}
-        <input
-          type="file"
-          id="edit-photo"
-          name="photo"
-          className="form-input"
-          onChange={handlePhotoChange}
-          accept="image/*"
-        />
-      </div>
-    </div>
+      {/* Edit Worker Modal */}
+      {/* Edit Worker Modal */}
+      <Modal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        title={`Edit Worker: ${selectedWorker?.name}`}
+      >
+        <form onSubmit={handleEditWorker}>
+          <div className="form-group">
+            <label htmlFor="edit-name" className="form-label">Name</label>
+            <input
+              type="text"
+              id="edit-name"
+              name="name"
+              className="form-input"
+              value={formData.name}
+              onChange={handleChange}
+              required
+            />
+          </div>
 
-    <div className="form-group">
-  <label htmlFor="edit-department" className="form-label">Department</label>
-  <select
-  id="edit-department"
-  name="department"
-  className="form-input"
-  value={formData.department}
-  onChange={handleChange}
-  required
->
-  {departments.map((dept) => (
-    <option 
-      key={dept._id} 
-      value={dept._id}
-    >
-      {dept.name}
-    </option>
-  ))}
-</select>
-</div>
-    
-    <div className="flex justify-end mt-6 space-x-2">
-      <Button
-        type="button"
-        variant="outline"
-        onClick={() => setIsEditModalOpen(false)}
-      >
-        Cancel
-      </Button>
-      <Button
-        type="submit"
-        variant="primary"
-      >
-        Update Worker
-      </Button>
-    </div>
-  </form>
-</Modal>
+          <div className="form-group">
+            <label htmlFor="edit-username" className="form-label">Username</label>
+            <input
+              type="text"
+              id="edit-username"
+              name="username"
+              className="form-input"
+              value={formData.username}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          {/* New Password Fields */}
+          <div className="form-group">
+            <label htmlFor="edit-password" className="form-label">New Password (optional)</label>
+            <input
+              type="password"
+              id="edit-password"
+              name="password"
+              className="form-input"
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Leave blank to keep current password"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="edit-confirm-password" className="form-label">Confirm New Password</label>
+            <input
+              type="password"
+              id="edit-confirm-password"
+              name="confirmPassword"
+              className="form-input"
+              value={formData.confirmPassword || ''}
+              onChange={handleChange}
+              placeholder="Confirm new password"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="edit-photo" className="form-label">Photo</label>
+            <div className="flex items-center">
+              {selectedWorker?.photo && (
+                <img
+                  src={`/uploads/${selectedWorker.photo}`}
+                  alt="Current Photo"
+                  className="w-20 h-20 rounded-full object-cover mr-4"
+                />
+              )}
+              <input
+                type="file"
+                id="edit-photo"
+                name="photo"
+                className="form-input"
+                onChange={handlePhotoChange}
+                accept="image/*"
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="edit-department" className="form-label">Department</label>
+            <select
+              id="edit-department"
+              name="department"
+              className="form-input"
+              value={formData.department}
+              onChange={handleChange}
+              required
+            >
+              {departments.map((dept) => (
+                <option
+                  key={dept._id}
+                  value={dept._id}
+                >
+                  {dept.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex justify-end mt-6 space-x-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsEditModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+            >
+              Update Worker
+            </Button>
+          </div>
+        </form>
+      </Modal>
       {/* Delete Worker Modal */}
       <Modal
         isOpen={isDeleteModalOpen}
@@ -553,7 +551,7 @@ const openEditModal = (worker) => {
           Are you sure you want to delete <strong>{selectedWorker?.name}</strong>?
           This action cannot be undone.
         </p>
-        
+
         <div className="flex justify-end space-x-2">
           <Button
             variant="outline"

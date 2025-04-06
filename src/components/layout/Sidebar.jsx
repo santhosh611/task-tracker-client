@@ -1,24 +1,25 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes } from 'react-icons/fa';
+import { FiLogOut } from "react-icons/fi";
 
-const Sidebar = ({ 
-  links, 
+const Sidebar = ({
+  links,
   logoText = 'Task Tracker',
   user,
   onLogout
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
-  
+
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
-  
+
   const closeSidebar = () => {
     setIsOpen(false);
   };
-  
+
   return (
     <>
       {/* Mobile menu button */}
@@ -30,20 +31,19 @@ const Sidebar = ({
         <span className="sr-only">Open sidebar</span>
         <FaBars className="h-6 w-6" />
       </button>
-      
+
       {/* Sidebar Backdrop */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
           onClick={closeSidebar}
         ></div>
       )}
-      
+
       {/* Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-gray-800 transition-transform duration-300 ease-in-out transform ${
-          isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
-        }`}
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-gray-800 transition-transform duration-300 ease-in-out transform overflow-y-scroll ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+          }`}
       >
         {/* Logo and close button */}
         <div className="flex items-center justify-between h-16 px-4 bg-gray-900">
@@ -59,37 +59,46 @@ const Sidebar = ({
             <FaTimes className="h-6 w-6" />
           </button>
         </div>
-        
+
         {/* User profile */}
         {user && (
           <div className="px-4 py-5 border-b border-gray-700">
-            <div className="flex items-center">
-              <div className="flex-shrink-0">
-                <img
-                  className="h-10 w-10 rounded-full object-cover"
-                  src={user.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.username)}`}
-                  alt={user.name || user.username}
-                />
+            <div className="flex items-center justify-between">
+              <div className='flex items-center'>
+                <div className="flex-shrink-0">
+                  <img
+                    className="h-10 w-10 rounded-full object-cover"
+                    src={user.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || user.username)}`}
+                    alt={user.name || user.username}
+                  />
+                </div>
+                <div className="ml-3">
+                  <p className="text-base font-medium text-white">{user.name || user.username}</p>
+                  <p className="text-sm font-medium text-gray-400">{user.department || user.role}</p>
+                </div>
               </div>
               <div className="ml-3">
-                <p className="text-base font-medium text-white">{user.name || user.username}</p>
-                <p className="text-sm font-medium text-gray-400">{user.department || user.role}</p>
+                {onLogout && <button 
+                  className="font-medium text-white m-2 p-2 text-xl"
+                  onClick={onLogout}
+                >
+                  <FiLogOut />
+                </button>}
               </div>
             </div>
           </div>
         )}
-        
+
         {/* Navigation Links */}
         <nav className="mt-5 px-2 space-y-1">
           {links.map((link) => (
             <Link
               key={link.to}
               to={link.to}
-              className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${
-                location.pathname === link.to
-                  ? 'bg-gray-900 text-white'
-                  : 'text-gray-300 hover:bg-gray-700 hover:text-white'
-              }`}
+              className={`group flex items-center px-2 py-2 text-base font-medium rounded-md ${location.pathname === link.to
+                ? 'bg-gray-900 text-white'
+                : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+                }`}
               onClick={closeSidebar}
             >
               {link.icon && (
@@ -106,14 +115,13 @@ const Sidebar = ({
             </Link>
           ))}
         </nav>
-        
+
         {/* Logout button */}
-        {onLogout && (
+        {/* {onLogout && (
           <div className="absolute bottom-0 w-full px-2 py-4 border-t border-gray-700">
             <button
               type="button"
               className="group flex items-center px-2 py-2 w-full text-base font-medium rounded-md text-gray-300 hover:bg-gray-700 hover:text-white"
-              onClick={onLogout}
             >
               <span className="mr-3 h-6 w-6">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -123,7 +131,7 @@ const Sidebar = ({
               Logout
             </button>
           </div>
-        )}
+        )} */}
       </div>
     </>
   );
