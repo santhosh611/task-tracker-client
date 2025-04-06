@@ -44,7 +44,7 @@ export const createWorker = async (workerData) => {
     throw error.response?.data || new Error('Failed to create worker');
   }
 };
-export const getWorkers = async () => {
+export const getWorkers = async (subdomain) => {
   try {
     const token = getAuthToken();
     if (!token) {
@@ -52,8 +52,11 @@ export const getWorkers = async () => {
       return [];
     }
     
-    const response = await api.get('/workers', {
-      headers: { Authorization: `Bearer ${token}` }
+    const response = await api.post('/workers/all', subdomain, {
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}` 
+      }
     });
     return response.data || [];
   } catch (error) {

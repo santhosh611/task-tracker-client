@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { FaUsers, FaTasks, FaColumns, FaCalendarAlt, FaComments } from 'react-icons/fa';
 import { getWorkers } from '../../services/workerService';
@@ -9,6 +9,7 @@ import { getTopics } from '../../services/topicService';
 import { getColumns } from '../../services/columnService';
 import Card from '../common/Card';
 import Spinner from '../common/Spinner';
+import appContext from '../../context/AppContext';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -29,6 +30,7 @@ const Dashboard = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [topWorkers, setTopWorkers] = useState([]);
+  const { subdomain } = useContext(appContext);
 
   useEffect(() => {
     const loadDashboardData = async () => {
@@ -42,7 +44,7 @@ const Dashboard = () => {
           leavesDataRaw,
           commentsDataRaw,
         ] = await Promise.all([
-          getWorkers(),
+          getWorkers({ subdomain }),
           getAllTasks(),
           getTopics(),
           getColumns(),
