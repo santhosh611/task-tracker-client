@@ -82,5 +82,6 @@ export default {
   login,
   logout,
   getCurrentUser,
-  checkAndInitAdmin
+  checkAndInitAdmin,
+  subdomainAvailable
 };

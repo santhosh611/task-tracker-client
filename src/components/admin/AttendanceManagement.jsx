@@ -1,9 +1,12 @@
-import React, { Fragment, useRef, useState, useEffect } from 'react';
+import React, { Fragment, useRef, useState, useEffect, useContext } from 'react';
 import { FaPlus } from 'react-icons/fa';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
 import Webcam from "react-webcam";
 import jsQR from "jsqr";
+import appContext from '../../context/AppContext';
+import { toast } from 'react-toastify';
+import { putAttendance } from '../../services/attendanceService';
 
 const AttendanceManagement = () => {
     const [worker, setWorker] = useState({ rfid: "" });
@@ -11,13 +14,28 @@ const AttendanceManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const webcamRef = useRef(null);
 
+    const { subdomain } = useContext(appContext);
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (worker.rfid.trim() === "") {
-            console.log("Enter all the fields");
+        if (!subdomain || subdomain == 'main') {
+            toast.error("Subdomain not found, check the URL.");
             return;
         }
-        console.log("RFID Submitted:", worker.rfid);
+
+        if (worker.rfid.trim() === "") {
+            toast.error("Enter the RFID");
+            return;
+        }
+
+        putAttendance({ rfid: worker.rfid, subdomain })
+            .then(response => {
+                toast.success(response.message || "Attendance marked successfully!");
+            })
+            .catch(error => {
+                console.error(error.message);
+                toast.error(error.message || "Failed to mark attendance. Please try again.");
+            });
     };
 
     useEffect(() => {
@@ -66,7 +84,10 @@ const AttendanceManagement = () => {
 
             <Modal
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={() => {
+                    setIsModalOpen(false);
+                    setWorker({ rfid: "" });
+                }}
                 title="RFID Input & QR Scanner"
                 size="md"
             >
