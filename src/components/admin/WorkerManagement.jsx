@@ -49,7 +49,7 @@ const WorkerManagement = () => {
       try {
         const [workersData, departmentsData] = await Promise.all([
           getWorkers({ subdomain }),
-          getDepartments()
+          getDepartments({ subdomain })
         ]);
 
         // Ensure data is an array
