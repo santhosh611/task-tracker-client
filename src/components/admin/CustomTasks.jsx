@@ -1,7 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { FaChevronDown, FaChevronUp, FaSearch, FaFilter } from 'react-icons/fa';
 import api from '../../services/api';
+import appContext from '../../context/AppContext';
+import { getCustomTask } from '../../services/taskService';
+import { getDepartments } from '../../services/departmentService';
+import { getWorkers } from '../../services/workerService';
 
 const CustomTasks = () => {
   const [tasks, setTasks] = useState([]);
@@ -10,7 +14,7 @@ const CustomTasks = () => {
   const [processing, setProcessing] = useState({});
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [activeView, setActiveView] = useState('pending');
-  
+
   // Filter states
   const [searchTerm, setSearchTerm] = useState('');
   const [departments, setDepartments] = useState([]);
@@ -18,22 +22,25 @@ const CustomTasks = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('');
   const [selectedWorker, setSelectedWorker] = useState('');
 
+  const { subdomain } = useContext(appContext);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch custom tasks
-        const tasksResponse = await api.get('/tasks/custom');
-        
-        // Fetch departments for filter
-        const departmentsResponse = await api.get('/departments');
-        
-        // Fetch workers for filter
-        const workersResponse = await api.get('/workers');
-        
-        setTasks(tasksResponse.data);
-        setFilteredTasks(tasksResponse.data);
-        setDepartments(departmentsResponse.data);
-        setWorkers(workersResponse.data);
+        const [
+          tasksResponse,
+          departmentsResponse,
+          workersResponse
+        ] = await Promise.all([
+          getCustomTask({ subdomain }),
+          getDepartments({ subdomain }),
+          getWorkers({ subdomain })
+        ]);
+
+        setTasks(tasksResponse);
+        setFilteredTasks(tasksResponse);
+        setDepartments(departmentsResponse);
+        setWorkers(workersResponse);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -52,69 +59,69 @@ const CustomTasks = () => {
 
   const applyFilters = () => {
     let result = [...tasks];
-    
+
     // Filter by status
     if (activeView !== 'all') {
       result = result.filter(task => task.status === activeView);
     }
-    
+
     // Filter by department - more robust handling
     if (selectedDepartment) {
       result = result.filter(task => {
         // Debug logging to see the structure
         console.log('Task worker:', task.worker);
-        console.log('Department check:', 
-          task.worker?.department, 
+        console.log('Department check:',
+          task.worker?.department,
           typeof task.worker?.department === 'object' ? task.worker?.department?._id : task.worker?.department
         );
-        
+
         // Check department in multiple ways
         return task.worker && (
           // Department as object with _id
-          (task.worker.department && 
-           typeof task.worker.department === 'object' && 
-           task.worker.department._id === selectedDepartment) ||
+          (task.worker.department &&
+            typeof task.worker.department === 'object' &&
+            task.worker.department._id === selectedDepartment) ||
           // Department as direct ID reference
-          (task.worker.department && 
-           typeof task.worker.department === 'string' && 
-           task.worker.department === selectedDepartment)
+          (task.worker.department &&
+            typeof task.worker.department === 'string' &&
+            task.worker.department === selectedDepartment)
         );
       });
     }
-    
+
     // Filter by worker
     if (selectedWorker) {
-      result = result.filter(task => 
+      result = result.filter(task =>
         task.worker && task.worker._id === selectedWorker
       );
     }
-    
+
     // Search by description
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
-      result = result.filter(task => 
-        task.description.toLowerCase().includes(term) || 
+      result = result.filter(task =>
+        task.description.toLowerCase().includes(term) ||
         (task.worker && task.worker.name.toLowerCase().includes(term))
       );
     }
-    
+
     setFilteredTasks(result);
   };
 
   const handleReview = async (taskId, status, points = 0) => {
     setProcessing(prev => ({ ...prev, [taskId]: true }));
-    
+
     try {
       const response = await api.put(`/tasks/custom/${taskId}`, {
         status,
         points: status === 'approved' ? points : 0
       });
-      
+
       // Update the tasks list with the reviewed task
-      setTasks(tasks.map(task => 
+      setTasks(tasks.map(task =>
         task._id === taskId ? response.data : task
       ));
-      
+
       toast.success(`Task ${status === 'approved' ? 'approved' : 'rejected'} successfully`);
     } catch (error) {
       toast.error(error.response?.data?.message || `Failed to ${status} task`);
@@ -132,14 +139,14 @@ const CustomTasks = () => {
 
   const PendingTaskItem = ({ task }) => {
     const [points, setPoints] = useState('');
-    
+
     const handlePointsChange = (e) => {
       const value = e.target.value;
       if (value === '' || !isNaN(value)) {
         setPoints(value);
       }
     };
-    
+
     return (
       <div className="border rounded-md p-4 mb-4 bg-white">
         <div className="flex justify-between">
@@ -151,9 +158,9 @@ const CustomTasks = () => {
             </p>
           </div>
         </div>
-        
+
         <p className="mt-2">{task.description}</p>
-        
+
         {task.status === 'pending' && (
           <div className="mt-4 flex items-center">
             <div className="mr-4">
@@ -166,7 +173,7 @@ const CustomTasks = () => {
                 className="w-24 p-1 border rounded"
               />
             </div>
-            
+
             <div className="flex space-x-2">
               <button
                 onClick={() => {
@@ -178,7 +185,7 @@ const CustomTasks = () => {
               >
                 Approve
               </button>
-              
+
               <button
                 onClick={() => handleReview(task._id, 'rejected')}
                 disabled={processing[task._id]}
@@ -189,17 +196,16 @@ const CustomTasks = () => {
             </div>
           </div>
         )}
-        
+
         {task.status !== 'pending' && (
           <div className="mt-2">
-            <span className={`px-2 py-1 rounded-full text-xs ${
-              task.status === 'approved' 
-                ? 'bg-green-100 text-green-800' 
+            <span className={`px-2 py-1 rounded-full text-xs ${task.status === 'approved'
+                ? 'bg-green-100 text-green-800'
                 : 'bg-red-100 text-red-800'
-            }`}>
+              }`}>
               {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
             </span>
-            
+
             {task.status === 'approved' && (
               <span className="ml-2 font-medium text-green-600">
                 {task.points} points awarded
@@ -214,17 +220,16 @@ const CustomTasks = () => {
   const displayTasks = showAllTasks ? filteredTasks : filteredTasks.slice(0, 5);
 
   const getTabClassName = (tabName) => {
-    return `px-3 py-1 rounded-md cursor-pointer ${
-      activeView === tabName
+    return `px-3 py-1 rounded-md cursor-pointer ${activeView === tabName
         ? 'bg-blue-600 text-white'
         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-    }`;
+      }`;
   };
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Custom Tasks</h1>
-      
+
       {loading ? (
         <p>Loading custom tasks...</p>
       ) : tasks.length === 0 ? (
@@ -249,7 +254,7 @@ const CustomTasks = () => {
                   />
                 </div>
               </div>
-              
+
               {/* Department Filter */}
               <div className="md:w-1/4">
                 <select
@@ -265,7 +270,7 @@ const CustomTasks = () => {
                   ))}
                 </select>
               </div>
-              
+
               {/* Worker Filter */}
               <div className="md:w-1/4">
                 <select
@@ -281,7 +286,7 @@ const CustomTasks = () => {
                   ))}
                 </select>
               </div>
-              
+
               {/* Clear Filters Button */}
               <button
                 onClick={clearFilters}
@@ -291,14 +296,14 @@ const CustomTasks = () => {
               </button>
             </div>
           </div>
-          
+
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold">Task List</h2>
             <div className="flex items-center space-x-2">
               <span className="text-sm text-gray-500">
                 Showing {displayTasks.length} of {filteredTasks.length} tasks
               </span>
-              <button 
+              <button
                 onClick={() => setShowAllTasks(!showAllTasks)}
                 className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
               >
@@ -310,35 +315,35 @@ const CustomTasks = () => {
               </button>
             </div>
           </div>
-          
+
           {/* View tabs */}
           <div className="flex space-x-2 mb-4 overflow-x-auto">
-            <div 
+            <div
               className={getTabClassName('all')}
               onClick={() => setActiveView('all')}
             >
               All Tasks
             </div>
-            <div 
+            <div
               className={getTabClassName('pending')}
               onClick={() => setActiveView('pending')}
             >
               Pending
             </div>
-            <div 
+            <div
               className={getTabClassName('approved')}
               onClick={() => setActiveView('approved')}
             >
               Approved
             </div>
-            <div 
+            <div
               className={getTabClassName('rejected')}
               onClick={() => setActiveView('rejected')}
             >
               Rejected
             </div>
           </div>
-          
+
           {displayTasks.length === 0 ? (
             <div className="bg-white p-4 rounded-lg text-center">
               <p>No {activeView !== 'all' ? activeView : ''} tasks found with the current filters.</p>
@@ -346,7 +351,7 @@ const CustomTasks = () => {
           ) : (
             <>
               {displayTasks.map(task => <PendingTaskItem key={task._id} task={task} />)}
-              
+
               {/* Show "View All" button if there are more tasks than shown */}
               {!showAllTasks && filteredTasks.length > 5 && (
                 <button

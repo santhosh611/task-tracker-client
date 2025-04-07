@@ -78,11 +78,23 @@ export const submitCustomTask = async (customTaskData) => {
   }
 };
 
+export const getCustomTask = async (taskData) => {
+  try {
+    const token = getAuthToken();
+    const response = await api.get(`/tasks/custom/${taskData.subdomain}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response ? error.response.data : new Error('Could not fetch custom task');
+  }
+}
+
 export const approveCustomTask = async (taskId, points = 1) => {
   try {
     const token = getAuthToken();
-    const response = await api.put(`/tasks/${taskId}/approve`, 
-      { points }, 
+    const response = await api.put(`/tasks/${taskId}/approve`,
+      { points },
       { headers: { Authorization: `Bearer ${token}` } }
     );
     return response.data;

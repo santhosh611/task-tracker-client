@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
+import appContext from '../../context/AppContext';
 
 const CustomTaskForm = () => {
   const [description, setDescription] = useState('');
@@ -10,6 +11,7 @@ const CustomTaskForm = () => {
   const [loading, setLoading] = useState(true);
   const [showAllTasks, setShowAllTasks] = useState(false);
   const [activeView, setActiveView] = useState('recent'); // 'recent', 'pending', 'approved', 'rejected'
+  const { subdomain } = useContext(appContext);
 
   // Fetch worker's custom tasks
   useEffect(() => {
@@ -39,7 +41,7 @@ const CustomTaskForm = () => {
     setSubmitting(true);
     
     try {
-      const response = await api.post('/tasks/custom', { description });
+      const response = await api.post('/tasks/custom', { description, subdomain });
       setCustomTasks([response.data, ...customTasks]);
       setDescription('');
       toast.success('Custom task submitted successfully');

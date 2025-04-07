@@ -1,18 +1,24 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { getWorkers } from '../../services/workerService';
+import appContext from '../../context/AppContext';
 import Card from '../common/Card';
 import Spinner from '../common/Spinner';
 
 const Scoreboard = ({ department }) => {
   const [workers, setWorkers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+  const { subdomain } = useContext(appContext);
+
   useEffect(() => {
     const loadWorkers = async () => {
+      if (!subdomain || subdomain == 'main') {
+        return;
+      }
+
       setIsLoading(true);
       try {
         // Get all workers
-        const workersData = await getWorkers();
+        const workersData = await getWorkers({ subdomain });
         
         // Filter workers by department and sort by total points
         const filteredWorkers = workersData
