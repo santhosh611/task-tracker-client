@@ -264,8 +264,8 @@ const WorkerManagement = () => {
       accessor: 'name'
     },
     {
-      header: 'Username',
-      accessor: 'username'
+      header: 'RFID',
+      accessor: 'rfid'
     },
     {
       header: 'Department',

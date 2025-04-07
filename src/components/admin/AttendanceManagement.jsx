@@ -8,6 +8,7 @@ import appContext from '../../context/AppContext';
 import { toast } from 'react-toastify';
 import { putAttendance, getAttendance } from '../../services/attendanceService';
 import Table from '../common/Table';
+import Spinner from '../common/Spinner';
 
 const AttendanceManagement = () => {
     const [worker, setWorker] = useState({ rfid: "" });
@@ -197,7 +198,7 @@ const AttendanceManagement = () => {
 
                 {isLoading ? (
                     <div className="flex justify-center py-8">
-                        <p>Loading...</p>
+                        <Spinner size="md" variant="default" />
                     </div>
                 ) : (
                     <Table
