@@ -27,12 +27,12 @@ const WorkerLogin = () => {
 
   const navigate = useNavigate();
   const { login } = useAuth();
-
+  
   // Intelligent Pagination
   const workersPerPage = 12;
   const totalWorkers = filteredWorkers.length;
   const totalPages = Math.ceil(totalWorkers / workersPerPage);
-
+  
   // Subdomain
   const { subdomain } = useContext(appContext);
 
@@ -44,7 +44,6 @@ const WorkerLogin = () => {
       }
 
       setIsLoadingWorkers(true);
-      console.log(subdomain);
       const workersData = await getPublicWorkers({ subdomain });
       setWorkers(workersData || []);
     } catch (error) {
@@ -98,13 +97,21 @@ const WorkerLogin = () => {
       return;
     }
 
+    if (!subdomain || subdomain == 'main') {
+      toast.error('Subdomain is missing, please check the URL');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      await login({
+      const response = await login({
         username: selectedWorker.username,
-        password
+        password,
+        subdomain
       }, 'worker');
+
+      response.data && console.log(response.data);
 
       toast.success(`Welcome, ${selectedWorker.name}!`);
       navigate('/worker');

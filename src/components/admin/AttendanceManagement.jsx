@@ -163,7 +163,7 @@ const AttendanceManagement = () => {
                 </Button>
             </div>
 
-            <section className='bg-white border rounded-lg p-4'>
+            <div className='bg-white border rounded-lg p-4'>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     <input
                         type="text"
@@ -254,7 +254,7 @@ const AttendanceManagement = () => {
                         </div>
                     )}
                 </Modal>
-            </section>
+            </div>
         </Fragment>
     );
 };

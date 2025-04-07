@@ -5,12 +5,14 @@ import LeaveApplication from '../../components/worker/ApplyForLeave';
 import LeaveRequests from '../../components/worker/LeaveRequests';
 import Comments from '../../components/worker/Comments';
 import FoodRequest from '../../components/worker/FoodRequest';
+import AttendanceReport from '../../components/worker/AttendanceReport';
 
 const WorkerDashboard = () => {
   return (
     <WorkerLayout>
       <Routes>
         <Route path="/" element={<Dashboard />} />
+        <Route path="/attendance" element={<AttendanceReport />} />
         <Route path="/leave-apply" element={<LeaveApplication />} />
         <Route path="/leave-requests" element={<LeaveRequests />} />
         <Route path="/comments" element={<Comments />} />

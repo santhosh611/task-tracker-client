@@ -16,7 +16,7 @@ const Dashboard = () => {
   const [tasks, setTasks] = useState([]);
   const [topics, setTopics] = useState([]);
   const [columns, setColumns] = useState([]);
-  
+
   useEffect(() => {
     const loadDashboardData = async () => {
       setIsLoading(true);

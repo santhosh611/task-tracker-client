@@ -6,7 +6,8 @@ import {
   FaCalendarPlus, 
   FaCalendarCheck, 
   FaComments,
-  FaPizzaSlice 
+  FaPizzaSlice, 
+  FaRegCalendarCheck
   
 } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
@@ -71,6 +72,11 @@ const WorkerLayout = ({ children }) => {
       to: '/worker',
       icon: <FaHome />,
       label: 'Dashboard'
+    },
+    {
+      to: '/worker/attendance',
+      icon: <FaRegCalendarCheck />,
+      label: 'Attendance Report'
     },
     {
       to: '/worker/food-request', 

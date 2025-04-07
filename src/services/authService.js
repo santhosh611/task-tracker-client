@@ -30,6 +30,8 @@ export const login = async (credentials, userType) => {
     localStorage.setItem('user', JSON.stringify({
       _id: userData._id,
       username: userData.username,
+      subdomain: userData.subdomain,
+      rfid: userData.rfid,
       email: userData.email,
       role: userData.role,
       name: userData.name, // Add worker's full name
