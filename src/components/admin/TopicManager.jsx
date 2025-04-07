@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { getTopics, createTopic, updateTopic, deleteTopic } from '../../services/topicService';
 import { getDepartments } from '../../services/departmentService';
+import appContext from '../../context/AppContext';
 import Card from '../common/Card';
 import Button from '../common/Button';
 import Table from '../common/Table';
@@ -28,6 +29,8 @@ const TopicManagement = () => {
     points: 0,
     department: ''
   });
+
+  const { subdomain } = useContext(appContext);
   
   // Load topics and departments
   useEffect(() => {
@@ -36,7 +39,7 @@ const TopicManagement = () => {
       try {
         const [topicsData, departmentsData] = await Promise.all([
           getTopics(),
-          getDepartments()
+          getDepartments({ subdomain })
         ]);
         setTopics(topicsData);
         setDepartments(departmentsData);
@@ -94,6 +97,11 @@ const TopicManagement = () => {
   // Handle add topic form submit
   const handleAddTopic = async (e) => {
     e.preventDefault();
+
+    if (!subdomain || subdomain == 'main') {
+      toast.error('Subdomain is missing, check the URL.');
+      return;
+    }
     
     if (!formData.name || formData.points < 0) {
       toast.error('Please fill in all required fields');
@@ -101,7 +109,7 @@ const TopicManagement = () => {
     }
     
     try {
-      const newTopic = await createTopic(formData);
+      const newTopic = await createTopic({...formData, subdomain});
       setTopics(prev => [...prev, newTopic]);
       setIsAddModalOpen(false);
       toast.success('Topic added successfully');
@@ -191,6 +199,7 @@ const TopicManagement = () => {
         <Button
           variant="primary"
           onClick={openAddModal}
+          className='flex items-center'
         >
           <FaPlus className="mr-2" /> Add Topic
         </Button>
