@@ -13,8 +13,10 @@ export const submitFoodRequest = async () => {
 export const getTodayRequests = async () => {
   try {
     const response = await api.get('/food-requests');
+    console.log('API Response:', response.data);
     return response.data;
   } catch (error) {
+    console.error('API Error:', error);
     throw error.response?.data || new Error('Failed to fetch food requests');
   }
 };

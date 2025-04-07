@@ -122,6 +122,15 @@ export const getNewCommentCount = async () => {
   }
 };
 
+export const markAllCommentsAsRead = async () => {
+  try {
+    await api.put('/comments/mark-all-read');
+  } catch (error) {
+    console.error('Failed to mark all comments as read:', error);
+    throw error;
+  }
+};
+
 
 export default {
   getAllComments,
@@ -134,4 +143,5 @@ export default {
   markAdminRepliesAsRead,
   cleanupComments,
   getNewCommentCount,
+  markAllCommentsAsRead
 };

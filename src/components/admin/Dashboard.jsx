@@ -42,7 +42,8 @@ const Dashboard = () => {
           topicsDataRaw,
           columnsDataRaw,
           leavesDataRaw,
-          commentsDataRaw,
+          commentsDataRaw,,
+          newCommentCount
         ] = await Promise.all([
           getWorkers(),
           getAllTasks(),
@@ -50,6 +51,7 @@ const Dashboard = () => {
           getColumns(),
           getAllLeaves(),
           getAllComments(),
+          
         ]);
 
         // Defensive check: ensure data is an array

@@ -1,9 +1,14 @@
 import axios from 'axios';
 
+
+const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
 const api = axios.create({
-  baseURL: 'https://task-tracker-backend-2jqf.onrender.com/api',
-  withCredentials: true, // If you need cookies for CORS, otherwise can remove
+  baseURL: apiBaseUrl,
+  withCredentials: true, // If you need cookies for CORS, otherwise can remove
 });
+
+
 
 // Track if we're currently refreshing to prevent infinite loops
 let isRefreshing = false;
@@ -66,7 +71,8 @@ api.interceptors.response.use(
         const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
         
         // Try to refresh the token with role information
-        const response = await axios.post('${import.meta.env.VITE_API_BASE_URL/api/auth/refresh-token', 
+        const response = await axios.post('http://localhost:5000/api/auth/refresh-token',
+
           { role: currentUser.role }, // Send role in request body
           {
             headers: {

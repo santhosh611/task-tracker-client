@@ -3,10 +3,10 @@ import axios from 'axios';
 import { useAuth } from './useAuth';
 
 const api = axios.create({
-  baseURL: 'https://task-tracker-backend-2jqf.onrender.com/api',
-  headers: { 
-    'Content-Type': 'application/json' 
-  }
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
 export const useAxios = () => {

@@ -5,6 +5,7 @@ import {
   getLeavesByStatus,
   updateLeaveStatus,
   markLeavesAsViewedByAdmin,
+  getNewLeaveRequestsCount 
 } from '../../services/leaveService';
 import Card from '../common/Card';
 import Spinner from '../common/Spinner';
@@ -15,6 +16,7 @@ const LeaveManagement = () => {
   const [leaves, setLeaves] = useState([]);
   const [filteredLeaves, setFilteredLeaves] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [newLeaveRequestsCount, setNewLeaveRequestsCount] = useState(0);
   const [showFilterMenu, setShowFilterMenu] = useState(false);
   const filterMenuRef = useRef(null);
 
@@ -36,6 +38,24 @@ const LeaveManagement = () => {
     markLeavesViewed();
     loadLeaves();
   }, []); 
+
+  useEffect(() => {
+    const fetchNewLeaveRequestsCount = async () => {
+      try {
+        const count = await getNewLeaveRequestsCount();
+        setNewLeaveRequestsCount(count);
+      } catch (error) {
+        console.error('Failed to fetch new leave requests:', error);
+      }
+    };
+
+    fetchNewLeaveRequestsCount();
+    // Refresh count periodically
+    const intervalId = setInterval(fetchNewLeaveRequestsCount, 60000); // Every minute
+
+    return () => clearInterval(intervalId);
+  }, []);
+
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -108,12 +128,14 @@ const handleViewAttachment = (documentPath) => {
   
     setFilteredLeaves(result);
   };
-
   const handleApproveLeave = async (leaveId) => {
     try {
       await updateLeaveStatus(leaveId, 'Approved');
       toast.success('Leave request approved');
       loadLeaves();
+      // Refresh new requests count after action
+      const count = await getNewLeaveRequestsCount();
+      setNewLeaveRequestsCount(count);
     } catch (error) {
       toast.error('Failed to approve leave request');
       console.error('Approve Leave Error:', error);
@@ -125,6 +147,9 @@ const handleViewAttachment = (documentPath) => {
       await updateLeaveStatus(leaveId, 'Rejected');
       toast.success('Leave request rejected');
       loadLeaves();
+      // Refresh new requests count after action
+      const count = await getNewLeaveRequestsCount();
+      setNewLeaveRequestsCount(count);
     } catch (error) {
       toast.error('Failed to reject leave request');
       console.error('Reject Leave Error:', error);
@@ -170,7 +195,14 @@ const handleViewAttachment = (documentPath) => {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Leave Management</h1>
+      <h1 className="text-2xl font-bold mb-6 flex items-center">
+        Leave Management
+        {newLeaveRequestsCount > 0 && (
+          <span className="ml-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full">
+            {newLeaveRequestsCount}
+          </span>
+        )}
+      </h1>
   
       {/* Desktop filters - hidden on mobile */}
       <div className="hidden md:flex md:justify-between md:items-center mb-4">

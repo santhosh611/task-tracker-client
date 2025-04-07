@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
-import { getAllComments, addReply } from '../../services/commentService';
+import { getAllComments, addReply,  getNewCommentCount
+} from '../../services/commentService';
 import Card from '../common/Card';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
@@ -19,6 +20,7 @@ const CommentManagement = () => {
   const [filterDepartment, setFilterDepartment] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [newCommentCount, setNewCommentCount] = useState(0);
+  
 
   // Modal states
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
@@ -52,6 +54,21 @@ const CommentManagement = () => {
     };
   }, [autoRefresh]);
   
+  useEffect(() => {
+    const fetchNewCommentCount = async () => {
+      try {
+        const { totalNewCount } = await getNewCommentCount();
+        setNewCommentCount(totalNewCount);
+      } catch (error) {
+        console.error('Failed to fetch new comment count:', error);
+      }
+    };
+  
+    fetchNewCommentCount();
+    const intervalId = setInterval(fetchNewCommentCount, 60000);
+    return () => clearInterval(intervalId);
+  }, []);
+
   const loadComments = async (showLoadingSpinner = true, retry = false) => {
     if (showLoadingSpinner) {
       setIsLoading(true);

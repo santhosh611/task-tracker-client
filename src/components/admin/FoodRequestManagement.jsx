@@ -18,6 +18,7 @@ const FoodRequestManagement = () => {
     setLoading(true);
     try {
       const data = await getTodayRequests();
+      console.log('Fetched Requests:', data); // Add this line
       setRequests(data);
       
       const settings = await getFoodRequestSettings();
@@ -60,10 +61,6 @@ const FoodRequestManagement = () => {
 
   
   const columns = [
-    { 
-      header: 'Employee ID', 
-      accessor: (row) => row.worker?.employeeId || 'N/A' 
-    },
     { 
       header: 'Name', 
       accessor: (row) => row.worker?.name || 'N/A' 
