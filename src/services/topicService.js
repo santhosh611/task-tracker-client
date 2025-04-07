@@ -1,10 +1,10 @@
 import api from '../hooks/useAxios';
 import { getAuthToken } from '../utils/authUtils';
 // Get all topics
-export const getTopics = async () => {
+export const getTopics = async (subdomain) => {
   try {
     const token = getAuthToken();
-    const response = await api.get('/topics', {
+    const response = await api.post('/topics/all', subdomain, {
       headers: { Authorization: `Bearer ${token}` }
     });
     return Array.isArray(response.data) ? response.data : [];

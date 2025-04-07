@@ -38,7 +38,7 @@ const TopicManagement = () => {
       setIsLoading(true);
       try {
         const [topicsData, departmentsData] = await Promise.all([
-          getTopics(),
+          getTopics({ subdomain }),
           getDepartments({ subdomain })
         ]);
         setTopics(topicsData);

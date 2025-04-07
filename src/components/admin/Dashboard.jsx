@@ -46,7 +46,7 @@ const Dashboard = () => {
         ] = await Promise.all([
           getWorkers({ subdomain }),
           getAllTasks(),
-          getTopics(),
+          getTopics({ subdomain }),
           getColumns(),
           getAllLeaves(),
           getAllComments(),
