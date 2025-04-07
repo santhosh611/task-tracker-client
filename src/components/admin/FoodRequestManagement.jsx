@@ -1,12 +1,12 @@
 // client/src/components/admin/FoodRequestManagement.jsx
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { getTodayRequests, toggleFoodRequests, getFoodRequestSettings } from '../../services/foodRequestService';
 import Button from '../common/Button';
 import Card from '../common/Card';
 import Spinner from '../common/Spinner';
 import Table from '../common/Table';
-
+import appContext from '../../context/AppContext';
 
 const FoodRequestManagement = () => {
   const [requests, setRequests] = useState([]);
@@ -14,13 +14,15 @@ const FoodRequestManagement = () => {
   const [toggling, setToggling] = useState(false);
   const [enabled, setEnabled] = useState(true);
 
+  const { subdomain } = useContext(appContext);
+
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      const data = await getTodayRequests();
+      const data = await getTodayRequests({ subdomain });
       setRequests(data);
       
-      const settings = await getFoodRequestSettings();
+      const settings = await getFoodRequestSettings({ subdomain });
       setEnabled(settings.enabled);
     } catch (error) {
       toast.error('Failed to fetch food requests');
@@ -43,7 +45,7 @@ const FoodRequestManagement = () => {
   const handleToggle = async () => {
     setToggling(true);
     try {
-      const result = await toggleFoodRequests();
+      const result = await toggleFoodRequests({ subdomain });
       setEnabled(result.enabled);
       toast.success(`Food requests ${result.enabled ? 'enabled' : 'disabled'} successfully`);
     } catch (error) {
