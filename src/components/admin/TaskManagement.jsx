@@ -68,7 +68,7 @@ const TaskManagement = () => {
 
       // Safely check for worker properties
       const workerName = task.worker?.name || '';
-      const workerDept = task.worker?.department || '';
+      const workerDept = task.worker?.department?.name || '';
       
       // Search term filter (worker name or department)
       const matchesSearch = !searchTerm || (
@@ -102,7 +102,7 @@ const TaskManagement = () => {
   // Reset all tasks
   const handleResetAllTasks = async () => {
     try {
-      await resetAllTasks();
+      await resetAllTasks({ subdomain });
       setTasks([]);
       setIsResetModalOpen(false);
       toast.success('All tasks have been reset');

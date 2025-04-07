@@ -53,11 +53,11 @@ export const getTasksByDateRange = async (startDate, endDate) => {
 };
 
 // Reset all tasks (admin)
-export const resetAllTasks = async () => {
+export const resetAllTasks = async (taskData) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await api.delete('/tasks/reset', {
-      headers: { Authorization: `Bearer ${token}` }
+    const response = await api.delete(`/tasks/reset/${taskData.subdomain}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
     });
     return response.data;
   } catch (error) {
