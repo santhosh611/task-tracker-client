@@ -1,14 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../hooks/useAuth';
+import appContext from '../../context/AppContext';
 import Button from '../../components/common/Button';
 import Card from '../../components/common/Card';
 
 const AdminLogin = () => {
+  const { subdomain } = useContext(appContext);
   const [credentials, setCredentials] = useState({
     username: '',
-    password: ''
+    password: '',
+    subdomain
   });
   const [isLoading, setIsLoading] = useState(false);
   const [backgroundShapes, setBackgroundShapes] = useState([]);
