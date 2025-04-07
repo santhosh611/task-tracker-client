@@ -2,6 +2,7 @@ import api from '../hooks/useAxios';
 import { getAuthToken } from '../utils/authUtils';
 // Create new task
 export const createTask = async (taskData) => {
+  console.log(taskData);
   try {
     const token = localStorage.getItem('token');
     const response = await api.post('/tasks', taskData, {
@@ -14,10 +15,10 @@ export const createTask = async (taskData) => {
 };
 
 // Get all tasks (admin)
-export const getAllTasks = async () => {
+export const getAllTasks = async (subdomain) => {
   try {
     const token = getAuthToken();
-    const response = await api.get('/tasks', {
+    const response = await api.post('/tasks/all', subdomain, {
       headers: { Authorization: `Bearer ${token}` }
     });
     console.log('Tasks API Response:', response.data);

@@ -57,7 +57,8 @@ const handleSubmit = async (e) => {
     // This prevents the server from rejecting our request
     const taskData = {
       data: Object.keys(formData).length === 0 ? { placeholder: 0 } : formData,
-      topics: selectedTopics
+      topics: selectedTopics,
+      subdomain: user.subdomain
     };
     
     const newTask = await createTask(taskData);

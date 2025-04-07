@@ -45,7 +45,7 @@ const Dashboard = () => {
           commentsDataRaw,
         ] = await Promise.all([
           getWorkers({ subdomain }),
-          getAllTasks(),
+          getAllTasks({ subdomain }),
           getTopics({ subdomain }),
           getColumns(),
           getAllLeaves(),

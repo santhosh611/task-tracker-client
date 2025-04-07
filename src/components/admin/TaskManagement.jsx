@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { getAllTasks, resetAllTasks } from '../../services/taskService';
@@ -8,6 +8,7 @@ import Button from '../common/Button';
 import Table from '../common/Table';
 import Modal from '../common/Modal';
 import Spinner from '../common/Spinner';
+import appContext from '../../context/AppContext';
 
 const TaskManagement = () => {
   const [tasks, setTasks] = useState([]);
@@ -23,14 +24,17 @@ const TaskManagement = () => {
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState(null);
 
+  // context
+  const { subdomain } = useContext(appContext);
+
   // Load tasks and workers
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
       try {
         const [tasksData, workersData] = await Promise.all([
-          getAllTasks(),
-          getWorkers()
+          getAllTasks({ subdomain }),
+          getWorkers({ subdomain })
         ]);
         
         // Ensure data is an array
