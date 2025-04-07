@@ -17,13 +17,14 @@ const Dashboard = () => {
   const [topics, setTopics] = useState([]);
   const [columns, setColumns] = useState([]);
 
+
   useEffect(() => {
     const loadDashboardData = async () => {
       setIsLoading(true);
       try {
         const [tasksData, topicsData, columnsData] = await Promise.all([
           getMyTasks(),
-          getTopics(),
+          getTopics({ subdomain: user.subdomain }),
           getColumns()
         ]);
         
