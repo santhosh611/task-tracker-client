@@ -6,6 +6,7 @@ import appContext from '../../context/AppContext';
 import { getCustomTask } from '../../services/taskService';
 import { getDepartments } from '../../services/departmentService';
 import { getWorkers } from '../../services/workerService';
+import Spinner from '../common/Spinner';
 
 const CustomTasks = () => {
   const [tasks, setTasks] = useState([]);
@@ -200,8 +201,8 @@ const CustomTasks = () => {
         {task.status !== 'pending' && (
           <div className="mt-2">
             <span className={`px-2 py-1 rounded-full text-xs ${task.status === 'approved'
-                ? 'bg-green-100 text-green-800'
-                : 'bg-red-100 text-red-800'
+              ? 'bg-green-100 text-green-800'
+              : 'bg-red-100 text-red-800'
               }`}>
               {task.status.charAt(0).toUpperCase() + task.status.slice(1)}
             </span>
@@ -221,8 +222,8 @@ const CustomTasks = () => {
 
   const getTabClassName = (tabName) => {
     return `px-3 py-1 rounded-md cursor-pointer ${activeView === tabName
-        ? 'bg-blue-600 text-white'
-        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+      ? 'bg-blue-600 text-white'
+      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
       }`;
   };
 
@@ -231,7 +232,7 @@ const CustomTasks = () => {
       <h1 className="text-2xl font-bold mb-6">Custom Tasks</h1>
 
       {loading ? (
-        <p>Loading custom tasks...</p>
+        <Spinner size="md" variant="default" />
       ) : tasks.length === 0 ? (
         <p>No custom tasks submitted yet.</p>
       ) : (
