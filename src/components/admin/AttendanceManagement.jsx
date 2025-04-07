@@ -163,96 +163,98 @@ const AttendanceManagement = () => {
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Search by name..."
-                    value={searchName}
-                    onChange={(e) => setSearchName(e.target.value)}
-                />
-                <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Filter by RFID..."
-                    value={filterRfid}
-                    onChange={(e) => setFilterRfid(e.target.value)}
-                />
-                <input
-                    type="text"
-                    className="form-input"
-                    placeholder="Filter by department..."
-                    value={filterDepartment}
-                    onChange={(e) => setFilterDepartment(e.target.value)}
-                />
-                <input
-                    type="date"
-                    className="form-input"
-                    placeholder="Filter by date..."
-                    value={filterDate}
-                    onChange={(e) => setFilterDate(e.target.value)}
-                />
-            </div>
-
-            {isLoading ? (
-                <div className="flex justify-center py-8">
-                    <p>Loading...</p>
-                </div>
-            ) : (
-                <Table
-                    columns={columns}
-                    data={filteredAttendance}
-                    noDataMessage="No attendance records found."
-                />
-            )}
-
-            <Modal
-                isOpen={isModalOpen}
-                onClose={() => {
-                    setIsModalOpen(false);
-                    setWorker({ rfid: "" });
-                }}
-                title="RFID Input & QR Scanner"
-                size="md"
-            >
-                <form onSubmit={handleSubmit} className="mb-4">
+            <section className='bg-white border rounded-lg p-4'>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
                     <input
                         type="text"
-                        name="rfid"
-                        id="rfid"
-                        onChange={(e) =>
-                            setWorker({ ...worker, [e.target.id]: e.target.value })
-                        }
-                        placeholder="RFID"
-                        className="border p-2 mb-2 w-full"
+                        className="form-input"
+                        placeholder="Search by name..."
+                        value={searchName}
+                        onChange={(e) => setSearchName(e.target.value)}
                     />
-                    <Button
-                        variant="primary"
-                        type="submit"
-                        className="bg-blue-500 text-white px-4 py-2 w-full"
-                    >
-                        Submit
-                    </Button>
-                </form>
+                    <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Filter by RFID..."
+                        value={filterRfid}
+                        onChange={(e) => setFilterRfid(e.target.value)}
+                    />
+                    <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Filter by department..."
+                        value={filterDepartment}
+                        onChange={(e) => setFilterDepartment(e.target.value)}
+                    />
+                    <input
+                        type="date"
+                        className="form-input"
+                        placeholder="Filter by date..."
+                        value={filterDate}
+                        onChange={(e) => setFilterDate(e.target.value)}
+                    />
+                </div>
 
-                <Webcam
-                    ref={webcamRef}
-                    style={{
-                        width: "100%",
-                        maxWidth: "400px",
-                        margin: "0 auto",
-                        border: "1px solid #ddd",
-                    }}
-                    videoConstraints={{
-                        facingMode: "environment",
-                    }}
-                />
-                {qrText && (
-                    <div style={{ marginTop: "20px" }}>
-                        <h1 className='text-lg text-center'>RFID: {qrText}</h1>
+                {isLoading ? (
+                    <div className="flex justify-center py-8">
+                        <p>Loading...</p>
                     </div>
+                ) : (
+                    <Table
+                        columns={columns}
+                        data={filteredAttendance.reverse()}
+                        noDataMessage="No attendance records found."
+                    />
                 )}
-            </Modal>
+
+                <Modal
+                    isOpen={isModalOpen}
+                    onClose={() => {
+                        setIsModalOpen(false);
+                        setWorker({ rfid: "" });
+                    }}
+                    title="RFID Input & QR Scanner"
+                    size="md"
+                >
+                    <form onSubmit={handleSubmit} className="mb-4">
+                        <input
+                            type="text"
+                            name="rfid"
+                            id="rfid"
+                            onChange={(e) =>
+                                setWorker({ ...worker, [e.target.id]: e.target.value })
+                            }
+                            placeholder="RFID"
+                            className="border p-2 mb-2 w-full"
+                        />
+                        <Button
+                            variant="primary"
+                            type="submit"
+                            className="bg-blue-500 text-white px-4 py-2 w-full"
+                        >
+                            Submit
+                        </Button>
+                    </form>
+
+                    <Webcam
+                        ref={webcamRef}
+                        style={{
+                            width: "100%",
+                            maxWidth: "400px",
+                            margin: "0 auto",
+                            border: "1px solid #ddd",
+                        }}
+                        videoConstraints={{
+                            facingMode: "environment",
+                        }}
+                    />
+                    {qrText && (
+                        <div style={{ marginTop: "20px" }}>
+                            <h1 className='text-lg text-center'>RFID: {qrText}</h1>
+                        </div>
+                    )}
+                </Modal>
+            </section>
         </Fragment>
     );
 };
