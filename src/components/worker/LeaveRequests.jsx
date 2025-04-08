@@ -1,30 +1,37 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { getMyLeaves, markLeaveAsViewed } from '../../services/leaveService';
 import Card from '../common/Card';
 import Spinner from '../common/Spinner';
 import Button from '../common/Button';
+import appContext from '../../context/AppContext';
+
 
 const LeaveRequests = () => {
   const [leaves, setLeaves] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+  const { subdomain } = useContext(appContext);
+
   useEffect(() => {
     const loadLeaves = async () => {
+      if (!subdomain || subdomain == 'main') {
+        return;
+      }
+
       setIsLoading(true);
       try {
-        const leavesData = await getMyLeaves();
+        const leavesData = await getMyLeaves({ subdomain });
         const safeLeaves = Array.isArray(leavesData) ? leavesData : [];
         setLeaves(safeLeaves);
-  
+
         // Mark leaves with updates as viewed
         const leavesWithUpdates = safeLeaves.filter(
           (leave) =>
             (leave.status === 'Approved' || leave.status === 'Rejected') &&
             !leave.workerViewed
         );
-  
+
         if (leavesWithUpdates.length > 0) {
           for (const leave of leavesWithUpdates) {
             await markLeaveAsViewed(leave._id);
@@ -38,10 +45,10 @@ const LeaveRequests = () => {
         setIsLoading(false);
       }
     };
-  
+
     loadLeaves();
   }, []);
-  
+
   // Format date for display
   const formatDate = (dateString) => {
     try {
@@ -50,7 +57,7 @@ const LeaveRequests = () => {
       return dateString;
     }
   };
-  
+
   // Get status badge style
   const getStatusBadge = (status) => {
     switch (status) {
@@ -64,7 +71,7 @@ const LeaveRequests = () => {
         return "bg-gray-100 text-gray-800";
     }
   };
-  
+
   if (isLoading) {
     return (
       <div>
@@ -77,11 +84,11 @@ const LeaveRequests = () => {
       </div>
     );
   }
-  
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">My Leave Requests</h1>
-      
+
       <Card>
         {leaves.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
@@ -97,13 +104,12 @@ const LeaveRequests = () => {
         ) : (
           <div className="space-y-4">
             {leaves.map((leave) => (
-              <div 
-                key={leave._id} 
-                className={`border rounded-lg overflow-hidden ${
-                  !leave.workerViewed && (leave.status === 'Approved' || leave.status === 'Rejected')
+              <div
+                key={leave._id}
+                className={`border rounded-lg overflow-hidden ${!leave.workerViewed && (leave.status === 'Approved' || leave.status === 'Rejected')
                     ? 'border-blue-400 border-2'
                     : 'border-gray-200'
-                }`}
+                  }`}
               >
                 <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
                   <h3 className="font-medium text-gray-700">{leave.leaveType}</h3>
@@ -111,7 +117,7 @@ const LeaveRequests = () => {
                     {leave.status}
                   </span>
                 </div>
-                
+
                 <div className="p-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
@@ -128,16 +134,16 @@ const LeaveRequests = () => {
                       <p>{formatDate(leave.createdAt)}</p>
                     </div>
                   </div>
-                  
+
                   <div className="mb-4">
                     <p className="text-sm text-gray-500 mb-1">Reason</p>
                     <p className="bg-gray-50 p-3 rounded-md">{leave.reason}</p>
                   </div>
-                  
+
                   {leave.document && (
                     <div>
                       <p className="text-sm text-gray-500 mb-1">Supporting Document</p>
-                      <a 
+                      <a
                         href={leave.document}
                         target="_blank"
                         rel="noopener noreferrer"

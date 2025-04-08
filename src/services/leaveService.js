@@ -7,7 +7,7 @@ export const getAllLeaves = async (leaveData) => {
     }
 
     const token = getAuthToken();
-    const response = await api.get(`/leaves/${leaveData.subdomain}`, {
+    const response = await api.get(`/leaves/${leaveData.subdomain}/0`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;
@@ -16,10 +16,10 @@ export const getAllLeaves = async (leaveData) => {
   }
 };
 
-export const getMyLeaves = async () => {
+export const getMyLeaves = async (leaveData) => {
   try {
     const token = getAuthToken(); // Add this line to get the token
-    const response = await api.get('/leaves/me', {
+    const response = await api.get(`/leaves/${leaveData.subdomain}/1`, {
       headers: { Authorization: `Bearer ${token}` } // Add authorization header
     });
     console.log('Leaves Service Response:', response.data);

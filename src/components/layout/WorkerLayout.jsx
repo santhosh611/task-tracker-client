@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import { 
@@ -17,19 +17,25 @@ import {
   getUnreadAdminReplies 
 } from '../../services/commentService';
 import Sidebar from './Sidebar';
+import appContext from '../../context/AppContext';
 
 const WorkerLayout = ({ children }) => {
   const { user, logout } = useAuth();
   const [newComments, setNewComments] = useState(0);
   const [leaveUpdates, setLeaveUpdates] = useState(0);
   const navigate = useNavigate();
+  const { subdomain } = useContext(appContext);
   
   // Check for new comments and leave updates
   useEffect(() => {
     const fetchNotificationCounts = async () => {
       try {
+        if (!subdomain || subdomain == 'main') {
+          return;
+        }
+
         // Fetch leaves
-        const leaves = await getMyLeaves();
+        const leaves = await getMyLeaves({ subdomain });
         const unviewedLeaves = leaves.filter(leave => 
           !leave.workerViewed && 
           (leave.status === 'Pending' || leave.status === 'Approved')
