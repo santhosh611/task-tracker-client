@@ -57,7 +57,7 @@ const AttendanceReport = () => {
             )
         },
         {
-            header: 'RFID',
+            header: 'Employee ID',
             accessor: 'rfid',
             render: (record) => record.rfid || 'Unknown'
         },

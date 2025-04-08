@@ -1,4 +1,3 @@
-// client/src/components/admin/FoodRequestManagement.jsx
 import { useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { getTodayRequests, toggleFoodRequests, getFoodRequestSettings } from '../../services/foodRequestService';
@@ -20,8 +19,17 @@ const FoodRequestManagement = () => {
     setLoading(true);
     try {
       const data = await getTodayRequests({ subdomain });
-      setRequests(data);
-      
+
+      // Flatten data
+      const formatted = data.map((req) => ({
+        name: req.worker?.name || 'N/A',
+        rfid: req.worker?.rfid || 'N/A',
+        department: req.department?.name || 'N/A',
+        date: new Date(req.date).toLocaleString(),
+      }));
+
+      setRequests(formatted);
+
       const settings = await getFoodRequestSettings({ subdomain });
       setEnabled(settings.enabled);
     } catch (error) {
@@ -33,12 +41,9 @@ const FoodRequestManagement = () => {
 
   useEffect(() => {
     fetchRequests();
-    
-    // Set up polling for real-time updates
     const interval = setInterval(() => {
       fetchRequests();
-    }, 30000); // Poll every 30 seconds
-    
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -55,38 +60,32 @@ const FoodRequestManagement = () => {
     }
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString();
-  };
-
-  
   const columns = [
-    { 
-      header: 'Employee ID', 
-      accessor: (row) => row.worker?.employeeId || 'N/A' 
+    {
+      header: 'Name',
+      accessor: 'name',
     },
-    { 
-      header: 'Name', 
-      accessor: (row) => row.worker?.name || 'N/A' 
+    {
+      header: 'Employee ID',
+      accessor: 'rfid',
     },
-    { 
-      header: 'Department', 
-      accessor: (row) => row.worker?.department || 'N/A' 
+    {
+      header: 'Department',
+      accessor: 'department',
     },
-    { 
-      header: 'Submitted At', 
-      accessor: (row) => formatDate(row.date) 
-    }
+    {
+      header: 'Submitted At',
+      accessor: 'date',
+    },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Food Request Management</h1>
-        
-        <Button 
-          onClick={handleToggle} 
+
+        <Button
+          onClick={handleToggle}
           disabled={toggling}
           variant={enabled ? "danger" : "success"}
         >
@@ -99,7 +98,7 @@ const FoodRequestManagement = () => {
           )}
         </Button>
       </div>
-      
+
       <Card>
         <div className="mb-4 flex justify-between items-center">
           <h2 className="text-xl font-bold">Today's Requests</h2>
@@ -107,7 +106,7 @@ const FoodRequestManagement = () => {
             Total: {requests.length}
           </div>
         </div>
-        
+
         {loading ? (
           <div className="flex justify-center py-8">
             <Spinner size="lg" />
@@ -120,7 +119,7 @@ const FoodRequestManagement = () => {
           <Table
             columns={columns}
             data={requests}
-            keyExtractor={(item) => item._id}
+            noDataMessage="No food request records found."
           />
         )}
       </Card>

@@ -264,7 +264,7 @@ const WorkerManagement = () => {
       accessor: 'name'
     },
     {
-      header: 'RFID',
+      header: 'Employee ID',
       accessor: 'rfid'
     },
     {
