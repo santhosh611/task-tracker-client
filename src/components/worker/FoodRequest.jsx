@@ -37,7 +37,7 @@ const FoodRequest = () => {
          }
          
          // Check if food request feature is enabled
-         const settings = await getFoodRequestSettings();
+         const settings = await getFoodRequestSettings({ subdomain: user.subdomain });
          setEnabled(settings.enabled);
        }
      } catch (error) {
@@ -54,7 +54,7 @@ const FoodRequest = () => {
  const handleSubmit = async () => {
    setLoading(true);
    try {
-     await submitFoodRequest();
+     await submitFoodRequest({ subdomain: user.subdomain });
      
      const now = new Date();
      const timeString = now.toLocaleTimeString();

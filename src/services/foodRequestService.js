@@ -1,9 +1,13 @@
 // client/src/services/foodRequestService.js
 import api from './api';
 
-export const submitFoodRequest = async () => {
+export const submitFoodRequest = async (FoodRequestData) => {
+  if (!FoodRequestData.subdomain || FoodRequestData.subdomain == 'main') {
+    throw new Error ('Subdomain was missing check the URL.');
+  }
+
   try {
-    const response = await api.post('/food-requests');
+    const response = await api.post('/food-requests', FoodRequestData);
     return response.data;
   } catch (error) {
     throw error.response?.data || new Error('Failed to submit food request');
