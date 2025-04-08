@@ -20,6 +20,7 @@ const LeaveManagement = () => {
     const fetchLeaves = async () => {
       try {
         const leavesData = await getAllLeaves({ subdomain });
+        console.log(leavesData);
         setLeaves(leavesData);
         setFilteredLeaves(leavesData);
         setLoading(false);

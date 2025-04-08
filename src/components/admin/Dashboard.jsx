@@ -47,9 +47,9 @@ const Dashboard = () => {
           getWorkers({ subdomain }),
           getAllTasks({ subdomain }),
           getTopics({ subdomain }),
-          getColumns(),
+          getColumns({ subdomain }),
           getAllLeaves({ subdomain }),
-          getAllComments(),
+          getAllComments({ subdomain }),
         ]);
 
         // Defensive check: ensure leavesData is an array

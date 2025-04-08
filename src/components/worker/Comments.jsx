@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { 
@@ -11,6 +11,7 @@ import {
 import Card from '../common/Card';
 import Button from '../common/Button';
 import Spinner from '../common/Spinner';
+import appContext from '../../context/AppContext';
 
 const Comments = () => {
   const [comments, setComments] = useState([]);
@@ -20,6 +21,7 @@ const Comments = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [replyTexts, setReplyTexts] = useState({});
   
+  const { subdomain } = useContext(appContext);
   
   // Load comments
   useEffect(() => {
@@ -45,6 +47,11 @@ const Comments = () => {
   // Handle comment submission
   const handleSubmitComment = async (e) => {
     e.preventDefault();
+
+    if (!subdomain || subdomain == 'main') {
+      toast.error('Subdomain is missin, check the URL.');
+      return;
+    }
     
     if (!commentText.trim()) {
       toast.error('Please enter a comment');
@@ -58,7 +65,7 @@ const Comments = () => {
         text: commentText.trim()
       };
       
-      const newComment = await createComment(commentData);
+      const newComment = await createComment({...commentData, subdomain});
       
       setComments(prev => [newComment, ...prev]);
       

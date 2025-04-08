@@ -152,7 +152,7 @@ const WorkerManagement = () => {
       toast.error('Username is required and cannot be empty');
       return;
     }
-    
+
     if (!trimmedEmail) {
       toast.error('Email is required and cannot be empty');
       return;
@@ -261,7 +261,19 @@ const WorkerManagement = () => {
   const columns = [
     {
       header: 'Name',
-      accessor: 'name'
+      accessor: 'name',
+      render: (record) => (
+        <div className="flex items-center">
+          {record?.photo && (
+            <img
+              src={`http://localhost:5000/uploads/${record.photo}` || `https://ui-avatars.com/api/?name=${encodeURIComponent(record.name)}`}
+              alt="Worker"
+              className="w-8 h-8 rounded-full mr-2"
+            />
+          )}
+          {record?.name || 'Unknown'}
+        </div>
+      )
     },
     {
       header: 'Employee ID',
@@ -362,7 +374,7 @@ const WorkerManagement = () => {
               required
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="email" className="form-label">Email</label>
             <input

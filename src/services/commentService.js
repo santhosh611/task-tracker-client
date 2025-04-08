@@ -1,10 +1,14 @@
 import api from '../hooks/useAxios';
 import { getAuthToken } from '../utils/authUtils';
 // Get all comments (admin)
-export const getAllComments = async () => {
+export const getAllComments = async (commentData) => {
   try {
+    if (!commentData.subdomain || commentData.subdomain == 'main') {
+      throw new Error ('Subdomain is missing, check the URL');
+    }
+
     const token = getAuthToken();
-    const response = await api.get('/comments', {
+    const response = await api.get(`/comments/${commentData.subdomain}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     console.log('Comments response:', response.data);

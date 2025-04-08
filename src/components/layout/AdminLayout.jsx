@@ -1,13 +1,13 @@
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate, Outlet } from 'react-router-dom'; // Add Outlet import
-import { 
-  FaHome, 
-  FaUsers, 
-  FaBuilding, 
-  FaTasks, 
-  FaColumns, 
-  FaCalendarAlt, 
-  FaComments, 
+import {
+  FaHome,
+  FaUsers,
+  FaBuilding,
+  FaTasks,
+  FaColumns,
+  FaCalendarAlt,
+  FaComments,
   FaTags,
   FaPizzaSlice,
   FaClipboardList,
@@ -25,23 +25,23 @@ const AdminLayout = () => {
   const [newComments, setNewComments] = useState(0);
   const navigate = useNavigate();
   const { subdomain } = useContext(appContext);
-  
+
   // Check for new comments and leave updates
   useEffect(() => {
     const fetchNotificationCounts = async () => {
       try {
         // Fetch leaves
-        const leaves = await getAllLeaves({ subdomain });
-        const unviewedLeaves = leaves.filter(leave => 
-          !leave.workerViewed && 
+        const leaves = await getAllLeaves({ subdomain }) || [];
+        const unviewedLeaves = Array.isArray(leaves) ? leaves.filter(leave =>
+          !leave.workerViewed &&
           (leave.status === 'Pending' || leave.status === 'Approved')
-        ).length;
+        ).length : 0;
         setPendingLeaves(unviewedLeaves);
-  
+
         // Fetch comments
-        const comments = await getAllComments();
-        const newUnreadComments = comments.filter(comment => 
-          comment.isNew || 
+        const comments = await getAllComments({ subdomain });
+        const newUnreadComments = comments.filter(comment =>
+          comment.isNew ||
           (comment.replies && comment.replies.some(reply => reply.isNew))
         ).length;
         setNewComments(newUnreadComments);
@@ -49,19 +49,19 @@ const AdminLayout = () => {
         console.error('Failed to fetch notifications:', error);
       }
     };
-  
+
     fetchNotificationCounts();
-  
+
     const intervalId = setInterval(fetchNotificationCounts, 5 * 60 * 1000);
-  
+
     return () => clearInterval(intervalId);
   }, []);
-  
+
   const handleLogout = () => {
     logout();
     navigate('/admin/login');
   };
-  
+
   const sidebarLinks = [
     {
       to: '/admin',
@@ -90,7 +90,7 @@ const AdminLayout = () => {
     },
     {
       to: '/admin/food-requests',
-      icon: <FaPizzaSlice />, 
+      icon: <FaPizzaSlice />,
       label: 'Food Requests'
     },
     {
@@ -107,7 +107,7 @@ const AdminLayout = () => {
       to: '/admin/custom-tasks',
       icon: <FaClipboardList />,
       label: 'Custom Tasks'
-    },    
+    },
     {
       to: '/admin/leaves',
       icon: <FaCalendarAlt />,
@@ -121,7 +121,7 @@ const AdminLayout = () => {
       badge: newComments > 0 ? newComments : null
     }
   ];
-  
+
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar
@@ -130,7 +130,7 @@ const AdminLayout = () => {
         user={user}
         onLogout={handleLogout}
       />
-      
+
       <div className="flex-1 overflow-auto md:ml-64">
         <main className="p-4 md:p-6">
           <Outlet /> {/* Correct import and usage */}

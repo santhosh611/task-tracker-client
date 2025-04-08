@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
 import { getAllComments, addReply } from '../../services/commentService';
@@ -6,6 +6,7 @@ import Card from '../common/Card';
 import Button from '../common/Button';
 import Modal from '../common/Modal';
 import Spinner from '../common/Spinner';
+import appContext from '../../context/AppContext';
 
 const CommentManagement = () => {
   const [comments, setComments] = useState([]);
@@ -21,12 +22,15 @@ const CommentManagement = () => {
   const [selectedAttachment, setSelectedAttachment] = useState(null);
   const [replyText, setReplyText] = useState('');
   
+  const { subdomain } = useContext(appContext);
+
   // Load all comments
   useEffect(() => {
     const loadComments = async () => {
       setIsLoading(true);
       try {
-        const commentsData = await getAllComments();
+        console.log(subdomain);
+        const commentsData = await getAllComments({ subdomain });
         
         // Ensure commentsData is an array
         const safeComments = Array.isArray(commentsData) ? commentsData : [];

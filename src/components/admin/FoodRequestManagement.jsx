@@ -19,6 +19,7 @@ const FoodRequestManagement = () => {
     setLoading(true);
     try {
       const data = await getTodayRequests({ subdomain });
+      console.log(data);
 
       // Flatten data
       const formatted = data.map((req) => ({
