@@ -84,7 +84,7 @@ const Scoreboard = ({ department }) => {
                     <div className="flex-shrink-0 h-10 w-10">
                       <img 
                         className="h-10 w-10 rounded-full object-cover" 
-                        src={worker.photo || `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`} 
+                        src={`http://localhost:5000${worker.photoUrl}` || `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`} 
                         alt={worker.name} 
                       />
                     </div>

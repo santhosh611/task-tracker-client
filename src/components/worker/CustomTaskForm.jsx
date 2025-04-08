@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 import api from '../../services/api';
 import { FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import appContext from '../../context/AppContext';
+import { getMyTasks } from '../../services/taskService';
 
 const CustomTaskForm = () => {
   const [description, setDescription] = useState('');
@@ -17,8 +18,9 @@ const CustomTaskForm = () => {
   useEffect(() => {
     const fetchCustomTasks = async () => {
       try {
-        const response = await api.get('/tasks/custom/me');
-        setCustomTasks(response.data);
+        const tasksData = await getMyTasks();
+        const customTasksData = tasksData.filter(task => task.isCustom === true);
+        setCustomTasks(customTasksData);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching custom tasks:', error);
