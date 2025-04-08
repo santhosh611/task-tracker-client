@@ -48,7 +48,7 @@ const Dashboard = () => {
           getAllTasks({ subdomain }),
           getTopics({ subdomain }),
           getColumns(),
-          getAllLeaves(),
+          getAllLeaves({ subdomain }),
           getAllComments(),
         ]);
 

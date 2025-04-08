@@ -1,250 +1,240 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
-import { format } from 'date-fns';
-import {
-  getLeavesByStatus,
-  updateLeaveStatus,
-  markLeavesAsViewedByAdmin
-} from '../../services/leaveService';
-import Card from '../common/Card';
+import { FaChevronDown, FaChevronUp, FaSearch } from 'react-icons/fa';
+import { getAllLeaves, markLeavesAsViewedByAdmin, updateLeaveStatus } from '../../services/leaveService';
+import appContext from '../../context/AppContext';
 import Spinner from '../common/Spinner';
-import Button from '../common/Button';
 
 const LeaveManagement = () => {
   const [leaves, setLeaves] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('all');
+  const [filteredLeaves, setFilteredLeaves] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState({});
+  const [showAllLeaves, setShowAllLeaves] = useState(false);
+  const [activeView, setActiveView] = useState('all');
+
+  const [searchTerm, setSearchTerm] = useState('');
+  const { subdomain } = useContext(appContext);
+
   useEffect(() => {
-    const markLeavesViewed = async () => {
+    const fetchLeaves = async () => {
       try {
-        await markLeavesAsViewedByAdmin();
+        const leavesData = await getAllLeaves({ subdomain });
+        setLeaves(leavesData);
+        setFilteredLeaves(leavesData);
+        setLoading(false);
       } catch (error) {
-        console.error('Error marking leaves as viewed:', error);
+        console.error('Error fetching leaves:', error);
+        toast.error('Failed to load leave requests');
+        setLoading(false);
       }
     };
 
-    markLeavesViewed();
-    loadLeaves();
-  }, [statusFilter]);
+    fetchLeaves();
+  }, [subdomain]);
 
-  const loadLeaves = async () => {
-    setIsLoading(true);
+  useEffect(() => {
+    applyFilters();
+  }, [searchTerm, activeView, leaves]);
+
+  const applyFilters = () => {
+    let result = [...leaves];
+
+    if (activeView !== 'all') {
+      result = result.filter(leave => leave.status === activeView);
+    }
+
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(leave =>
+        leave.worker?.name.toLowerCase().includes(term) ||
+        leave.leaveType.toLowerCase().includes(term)
+      );
+    }
+
+    setFilteredLeaves(result);
+  };
+
+  const handleReview = async (leaveId, status) => {
+    setProcessing(prev => ({ ...prev, [leaveId]: true }));
+
     try {
-      const leavesData = await getLeavesByStatus(statusFilter);
-      const safeLeaves = Array.isArray(leavesData) ? leavesData : [];
-      setLeaves(safeLeaves);
+      await updateLeaveStatus(leaveId, status);
+      setLeaves(leaves.map(leave =>
+        leave._id === leaveId ? { ...leave, status } : leave
+      ));
+      await markLeavesAsViewedByAdmin(leaveId);
+      toast.success(`Leave ${status.toLowerCase()} successfully`);
     } catch (error) {
-      toast.error('Failed to load leave requests');
-      console.error('Leave Loading Error:', error);
-      setLeaves([]);
+      toast.error(`Failed to ${status.toLowerCase()} leave`);
     } finally {
-      setIsLoading(false);
+      setProcessing(prev => ({ ...prev, [leaveId]: false }));
     }
   };
 
-  const handleApproveLeave = async (leaveId) => {
-    try {
-      await updateLeaveStatus(leaveId, 'Approved');
-      toast.success('Leave request approved');
-      loadLeaves();
-    } catch (error) {
-      toast.error('Failed to approve leave request');
-      console.error('Approve Leave Error:', error);
-    }
+  const clearFilters = () => {
+    setSearchTerm('');
+    setActiveView('all');
   };
 
-  const handleRejectLeave = async (leaveId) => {
-    try {
-      await updateLeaveStatus(leaveId, 'Rejected');
-      toast.success('Leave request rejected');
-      loadLeaves();
-    } catch (error) {
-      toast.error('Failed to reject leave request');
-      console.error('Reject Leave Error:', error);
-    }
-  };
-
-
-  const handleDownloadAttachment = (url) => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'attachment');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  // Format date for display
-  const formatDate = (dateString) => {
-    try {
-      return format(new Date(dateString), 'MMM dd, yyyy');
-    } catch (error) {
-      console.error('Date Formatting Error:', error);
-      return dateString;
-    }
-  };
-
-  // Get status badge style
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'Approved':
-        return 'bg-green-100 text-green-800';
-      case 'Rejected':
-        return 'bg-red-100 text-red-800';
-      case 'Pending':
-        return 'bg-yellow-100 text-yellow-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div>
-        <h1 className="text-2xl font-bold mb-6">Leave Management</h1>
-        <Card>
-          <div className="flex justify-center py-8">
-            <Spinner size="lg" />
-          </div>
-        </Card>
+  const LeaveItem = ({ leave }) => (
+    <div className="border rounded-md p-4 mb-4 bg-white">
+      <div className="flex justify-between">
+        <div>
+          <p className="font-medium">{leave.worker?.name || 'Unknown Worker'}</p>
+          <p className="text-sm text-gray-500">
+            {leave.leaveType} • {new Date(leave.createdAt).toLocaleString()}
+          </p>
+        </div>
+        <span
+          className={`px-2 py-1 rounded-full text-xs ${
+            leave.status === 'Approved'
+              ? 'bg-green-100 text-green-800'
+              : leave.status === 'Rejected'
+              ? 'bg-red-100 text-red-800'
+              : 'bg-yellow-100 text-yellow-800'
+          }`}
+        >
+          {leave.status}
+        </span>
       </div>
-    );
-  }
+
+      <p className="mt-2">{leave.reason}</p>
+
+      {leave.status === 'Pending' && (
+        <div className="mt-4 flex space-x-2">
+          <button
+            onClick={() => handleReview(leave._id, 'Approved')}
+            disabled={processing[leave._id]}
+            className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            Approve
+          </button>
+          <button
+            onClick={() => handleReview(leave._id, 'Rejected')}
+            disabled={processing[leave._id]}
+            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+          >
+            Reject
+          </button>
+        </div>
+      )}
+    </div>
+  );
+
+  const displayLeaves = showAllLeaves ? filteredLeaves : filteredLeaves.slice(0, 5);
+
+  const getTabClassName = (tabName) => {
+    return `px-3 py-1 rounded-md cursor-pointer ${
+      activeView === tabName
+        ? 'bg-blue-600 text-white'
+        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+    }`;
+  };
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Leave Management</h1>
 
-      <div className="mb-4">
-        <button
-          className={`mr-2 py-2 px-4 ${
-            statusFilter === 'all'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 text-gray-700'
-          }`}
-          onClick={() => setStatusFilter('all')}
-        >
-          All
-        </button>
-        <button
-          className={`mr-2 py-2 px-4 ${
-            statusFilter === 'Pending'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 text-gray-700'
-          }`}
-          onClick={() => setStatusFilter('Pending')}
-        >
-          Pending
-        </button>
-        <button
-          className={`mr-2 py-2 px-4 ${
-            statusFilter === 'Approved'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 text-gray-700'
-          }`}
-          onClick={() => setStatusFilter('Approved')}
-        >
-          Approved
-        </button>
-        <button
-          className={`py-2 px-4 ${
-            statusFilter === 'Rejected'
-              ? 'bg-blue-500 text-white'
-              : 'bg-gray-200 text-gray-700'
-          }`}
-          onClick={() => setStatusFilter('Rejected')}
-        >
-          Rejected
-        </button>
-      </div>
-
-      <Card>
-        {leaves.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <p>No leave requests found.</p>
-          </div>
-        ) : (
-  
-          <div className="space-y-4">
-      {leaves.map((leave) => (
-        <div
-          key={leave._id}
-          className={`border rounded-lg overflow-hidden border-gray-200 ${
-            !leave.workerViewed ? 'border-l-4 border-l-blue-500' : ''
-          }`}
-        >
-                <div className="bg-gray-50 px-4 py-3 border-b border-gray-200 flex justify-between items-center">
-                  <div>
-                    <h3 className="font-medium text-gray-700">{leave.leaveType}</h3>
-                    <p className="text-sm text-gray-500">
-                      Requested by: {leave.worker?.name} ({leave.worker?.department})
-                    </p>
+      {loading ? (
+        <Spinner size="md" variant="default" />
+      ) : leaves.length === 0 ? (
+        <p>No leave requests submitted yet.</p>
+      ) : (
+        <div>
+          <div className="bg-white p-4 rounded-lg shadow mb-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <FaSearch className="text-gray-400" />
                   </div>
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadge(
-                      leave.status
-                    )}`}
-                  >
-                    {leave.status}
-                  </span>
-                </div>
-
-                <div className="p-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <p className="text-sm text-gray-500">Duration</p>
-                      <p>
-                        {formatDate(leave.startDate)} - {formatDate(leave.endDate)}
-                        <span className="text-sm text-gray-500 ml-1">
-                          ({leave.totalDays} {leave.totalDays === 1 ? 'day' : 'days'})
-                        </span>
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-gray-500">Submitted On</p>
-                      <p>{formatDate(leave.createdAt)}</p>
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-500 mb-1">Reason</p>
-                    <p className="bg-gray-50 p-3 rounded-md">{leave.reason}</p>
-                  </div>
-
-                  {leave.document && (
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-500 mb-1">Supporting Document</p>
-                      <Button
-                        variant="link"
-                        onClick={() => handleDownloadAttachment(leave.document)}
-                      >
-                        View Attachment
-                      </Button>
-                    </div>
-                  )}
-
-                  {leave.status === 'Pending' && (
-                    <div className="flex justify-end">
-                      <button
-                        className="py-2 px-4 bg-green-500 text-white rounded-md mr-2"
-                        onClick={() => handleApproveLeave(leave._id)}
-                      >
-                        Approve
-                      </button>
-                      <button
-                        className="py-2 px-4 bg-red-500 text-white rounded-md"
-                        onClick={() => handleRejectLeave(leave._id)}
-                      >
-                        Reject
-                      </button>
-                    </div>
-                  )}
+                  <input
+                    type="text"
+                    placeholder="Search by worker name or leave type"
+                    className="pl-10 pr-4 py-2 w-full border rounded-md"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
                 </div>
               </div>
-            ))}
+              <button
+                onClick={clearFilters}
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300"
+              >
+                Clear Filters
+              </button>
+            </div>
           </div>
-        )}
-      </Card>
+
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold">Leave List</h2>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-500">
+                Showing {displayLeaves.length} of {filteredLeaves.length} leaves
+              </span>
+              <button
+                onClick={() => setShowAllLeaves(!showAllLeaves)}
+                className="text-blue-600 hover:text-blue-800 text-sm flex items-center"
+              >
+                {showAllLeaves ? (
+                  <>Show Less {<FaChevronUp className="ml-1" />}</>
+                ) : (
+                  <>Show All {<FaChevronDown className="ml-1" />}</>
+                )}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex space-x-2 mb-4 overflow-x-auto">
+            <div
+              className={getTabClassName('all')}
+              onClick={() => setActiveView('all')}
+            >
+              All Leaves
+            </div>
+            <div
+              className={getTabClassName('Pending')}
+              onClick={() => setActiveView('Pending')}
+            >
+              Pending
+            </div>
+            <div
+              className={getTabClassName('Approved')}
+              onClick={() => setActiveView('Approved')}
+            >
+              Approved
+            </div>
+            <div
+              className={getTabClassName('Rejected')}
+              onClick={() => setActiveView('Rejected')}
+            >
+              Rejected
+            </div>
+          </div>
+
+          {displayLeaves.length === 0 ? (
+            <div className="bg-white p-4 rounded-lg text-center">
+              <p>No {activeView !== 'all' ? activeView : ''} leaves found with the current filters.</p>
+            </div>
+          ) : (
+            <>
+              {displayLeaves.map(leave => (
+                <LeaveItem key={leave._id} leave={leave} />
+              ))}
+
+              {!showAllLeaves && filteredLeaves.length > 5 && (
+                <button
+                  onClick={() => setShowAllLeaves(true)}
+                  className="mt-4 w-full py-2 text-sm text-blue-600 hover:text-blue-800 border border-blue-300 rounded-md"
+                >
+                  View All ({filteredLeaves.length}) Leaves
+                </button>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };

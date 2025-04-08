@@ -1,9 +1,13 @@
 import api from '../hooks/useAxios';
 import { getAuthToken } from '../utils/authUtils';
-export const getAllLeaves = async () => {
+export const getAllLeaves = async (leaveData) => {
   try {
+    if (!leaveData.subdomain || leaveData.subdomain == 'main') {
+      throw new Error('Subdomain is missing check the URL');
+    }
+
     const token = getAuthToken();
-    const response = await api.get('/leaves', {
+    const response = await api.get(`/leaves/${leaveData.subdomain}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;
@@ -19,7 +23,7 @@ export const getMyLeaves = async () => {
       headers: { Authorization: `Bearer ${token}` } // Add authorization header
     });
     console.log('Leaves Service Response:', response.data);
-    
+
 
     return Array.isArray(response.data) ? response.data : [];
   } catch (error) {
@@ -31,10 +35,12 @@ export const getMyLeaves = async () => {
 // Create leave
 export const createLeave = async (leaveData) => {
   try {
-    console.log('Leave data:', leaveData);
     const token = getAuthToken();
 
     // Validation
+    if (!leaveData.subdomain || leaveData.subdomain == 'main') {
+      throw new Error('Subdomain is missing check the URL');
+    }
     if (!leaveData.reason || leaveData.reason.trim() === '') {
       throw new Error('Reason is required and cannot be empty');
     }
