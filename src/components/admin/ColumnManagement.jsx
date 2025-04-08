@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
 import { getColumns, createColumn, updateColumn, deleteColumn } from '../../services/columnService';
 import { getDepartments } from '../../services/departmentService';
+import appContext from '../../context/AppContext'; 
 import Card from '../common/Card';
 import Button from '../common/Button';
 import Table from '../common/Table';
@@ -21,7 +22,10 @@ const ColumnManagement = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedColumn, setSelectedColumn] = useState(null);
-  
+ 
+  // context
+  const { subdomain } = useContext(appContext);
+
   // Form states
   const [formData, setFormData] = useState({
     name: '',
@@ -31,11 +35,15 @@ const ColumnManagement = () => {
   // Load columns and departments
   useEffect(() => {
     const loadData = async () => {
+      if (!subdomain || subdomain == 'main') {
+        return;
+      }
+
       setIsLoading(true);
       try {
         const [columnsData, departmentsData] = await Promise.all([
-          getColumns(),
-          getDepartments()
+          getColumns({ subdomain }),
+          getDepartments({ subdomain })
         ]);
         
         // Ensure columnsData is an array
@@ -117,7 +125,7 @@ const ColumnManagement = () => {
     }
     
     try {
-      const newColumn = await createColumn(formData);
+      const newColumn = await createColumn({...formData, subdomain});
       setColumns(prev => [...prev, newColumn]);
       setIsAddModalOpen(false);
       toast.success('Column added successfully');

@@ -2,10 +2,13 @@ import api from '../hooks/useAxios';
 import { getAuthToken } from '../utils/authUtils';
 // Get all columns
 
-export const getColumns = async () => {
+export const getColumns = async (columnData) => {
   try {
+    if (!columnData.subdomain || columnData.subdomain == 'main') {
+      throw new Error('Subdomain is missing check the URL');
+    }
     const token = getAuthToken();
-    const response = await api.get('/columns', {
+    const response = await api.get(`/columns/${columnData.subdomain}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     return Array.isArray(response.data) ? response.data : [];
