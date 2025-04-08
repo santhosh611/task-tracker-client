@@ -31,15 +31,46 @@ export const getMyLeaves = async () => {
 // Create leave
 export const createLeave = async (leaveData) => {
   try {
-    const token = localStorage.getItem('token');
-    const response = await api.post('/leaves', leaveData, {
-      headers: { Authorization: `Bearer ${token}` }
+    console.log('Leave data:', leaveData);
+    const token = getAuthToken();
+
+    // Validation
+    if (!leaveData.reason || leaveData.reason.trim() === '') {
+      throw new Error('Reason is required and cannot be empty');
+    }
+    if (!leaveData.startDate) {
+      throw new Error('Start date is required');
+    }
+    if (!leaveData.endDate) {
+      throw new Error('End date is required');
+    }
+    if (!leaveData.leaveType) {
+      throw new Error('Leave type is required');
+    }
+
+    const formData = new FormData();
+    Object.keys(leaveData).forEach(key => {
+      if (key === 'document' && leaveData.document) {
+        formData.append('document', leaveData.document, leaveData.document.name);
+      } else {
+        formData.append(key, leaveData[key]);
+      }
     });
+
+    const response = await api.post('/leaves', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
     return response.data;
   } catch (error) {
-    throw error.response ? error.response.data : new Error('Failed to create leave');
+    console.error('Leave creation error:', error.response?.data || error);
+    throw error.response?.data || new Error('Failed to create leave');
   }
 };
+
 // Update leave status (admin)
 export const updateLeaveStatus = async (leaveId, status) => {
   try {
