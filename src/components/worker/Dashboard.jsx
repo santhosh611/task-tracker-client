@@ -25,7 +25,7 @@ const Dashboard = () => {
         const [tasksData, topicsData, columnsData] = await Promise.all([
           getMyTasks(),
           getTopics({ subdomain: user.subdomain }),
-          getColumns()
+          getColumns({ subdomain: user.subdomain })
         ]);
         
         setTasks(tasksData);

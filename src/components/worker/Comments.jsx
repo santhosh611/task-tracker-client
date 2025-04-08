@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { format } from 'date-fns';
-import { 
-  getMyComments, 
-  createComment, 
-  addReply, 
+import {
+  getMyComments,
+  createComment,
+  addReply,
   markAdminRepliesAsRead,
-  markCommentAsRead 
+  markCommentAsRead
 } from '../../services/commentService';
 import Card from '../common/Card';
 import Button from '../common/Button';
@@ -20,9 +20,9 @@ const Comments = () => {
   const [attachment, setAttachment] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [replyTexts, setReplyTexts] = useState({});
-  
+
   const { subdomain } = useContext(appContext);
-  
+
   // Load comments
   useEffect(() => {
 
@@ -40,10 +40,7 @@ const Comments = () => {
     };
     fetchComments();
   }, []);
-  
 
-
-  
   // Handle comment submission
   const handleSubmitComment = async (e) => {
     e.preventDefault();
@@ -52,64 +49,64 @@ const Comments = () => {
       toast.error('Subdomain is missin, check the URL.');
       return;
     }
-    
+
     if (!commentText.trim()) {
       toast.error('Please enter a comment');
       return;
     }
-    
+
     setIsSubmitting(true);
-    
+
     try {
       const commentData = {
         text: commentText.trim()
       };
-      
-      const newComment = await createComment({...commentData, subdomain});
-      
+
+      const newComment = await createComment({ ...commentData, subdomain });
+
       setComments(prev => [newComment, ...prev]);
-      
+
       // Reset form
       setCommentText('');
-      
-      
+
+
       toast.success('Comment added successfully!');
-    }  catch (error) {
+    } catch (error) {
       toast.error(error.message || 'Failed to add comment');
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   // Handle reply submission
   const handleSubmitReply = async (commentId) => {
     const replyText = replyTexts[commentId];
-    
+
     if (!replyText || !replyText.trim()) {
       toast.error('Please enter a reply');
       return;
     }
-    
+
     try {
       const updatedComment = await addReply(commentId, { text: replyText.trim() });
-      
-      setComments(prev => 
-        prev.map(comment => 
+
+      setComments(prev =>
+        prev.map(comment =>
           comment._id === commentId ? updatedComment : comment
         )
       );
-      
+
       setReplyTexts(prev => ({
         ...prev,
         [commentId]: ''
       }));
-      
+
       toast.success('Reply added successfully!');
     } catch (error) {
       toast.error(error.message || 'Failed to add reply');
     }
   };
-  
+
   // Update reply text for a specific comment
   const handleReplyTextChange = (commentId, text) => {
     setReplyTexts(prev => ({
@@ -117,7 +114,7 @@ const Comments = () => {
       [commentId]: text
     }));
   };
-  
+
   // Format date
   const formatDate = (dateString) => {
     try {
@@ -126,7 +123,7 @@ const Comments = () => {
       return dateString;
     }
   };
-  
+
   // View attachment
   const viewAttachment = (attachment) => {
     if (attachment.type.startsWith('image/')) {
@@ -140,11 +137,11 @@ const Comments = () => {
       document.body.removeChild(link);
     }
   };
-  
+
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Comments & Communication</h1>
-      
+
       <Card className="mb-6">
         <form onSubmit={handleSubmitComment}>
           <div className="form-group">
@@ -159,7 +156,7 @@ const Comments = () => {
               required
             ></textarea>
           </div>
-                
+
           <div className="flex justify-end">
             <Button
               type="submit"
@@ -171,7 +168,7 @@ const Comments = () => {
           </div>
         </form>
       </Card>
-      
+
       <Card title="Comment History">
         {isLoading ? (
           <div className="flex justify-center py-8">
@@ -184,11 +181,10 @@ const Comments = () => {
         ) : (
           <div className="space-y-6">
             {comments.map((comment) => (
-              <div 
+              <div
                 key={comment._id || `comment-${Math.random()}`}
-                className={`border rounded-lg overflow-hidden ${
-                  comment.isNew ? 'border-blue-400' : 'border-gray-200'
-                }`}
+                className={`border rounded-lg overflow-hidden ${comment.isNew ? 'border-blue-400' : 'border-gray-200'
+                  }`}
               >
                 <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
                   <div className="flex justify-between items-center">
@@ -198,10 +194,10 @@ const Comments = () => {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="p-4">
                   <p className="mb-4">{comment.text}</p>
-                  
+
                   {comment.attachment && (
                     <div className="mb-4 p-3 bg-gray-50 rounded-md">
                       <div className="flex items-center">
@@ -218,21 +214,20 @@ const Comments = () => {
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Replies */}
                   {comment.replies && comment.replies.length > 0 && (
                     <div className="mt-4 space-y-3">
                       <h4 className="text-sm font-medium text-gray-700">Replies:</h4>
-                      
+
                       {comment.replies.map((reply, index) => (
-  <div 
-    key={`${comment._id}-reply-${index}`}
-    className={`p-3 rounded-md ${
-      reply.isAdminReply 
-        ? 'bg-blue-50 border-l-4 border-blue-400'
-        : 'bg-gray-50'
-    } ${reply.isNew ? 'border-2 border-blue-300' : ''}`}
-  >
+                        <div
+                          key={`${comment._id}-reply-${index}`}
+                          className={`p-3 rounded-md ${reply.isAdminReply
+                              ? 'bg-blue-50 border-l-4 border-blue-400'
+                              : 'bg-gray-50'
+                            } ${reply.isNew ? 'border-2 border-blue-300' : ''}`}
+                        >
                           <div className="flex justify-between items-center mb-1">
                             <p className="text-sm font-medium">
                               {reply.isAdminReply ? 'Admin' : 'You'}
@@ -246,7 +241,7 @@ const Comments = () => {
                       ))}
                     </div>
                   )}
-                  
+
                   {/* Reply form */}
                   <div className="mt-4">
                     <textarea
@@ -256,7 +251,7 @@ const Comments = () => {
                       onChange={(e) => handleReplyTextChange(comment._id, e.target.value)}
                       placeholder="Type your reply..."
                     ></textarea>
-                    
+
                     <div className="flex justify-end space-x-2">
                       <Button
                         variant="primary"
