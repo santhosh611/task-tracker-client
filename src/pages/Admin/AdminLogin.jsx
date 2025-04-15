@@ -47,6 +47,7 @@ const AdminLogin = () => {
     
     try {
       const result = await login(credentials, 'admin');
+      console.log("result: ", result);
       toast.success('Login successful!');
       navigate('/admin');
     } catch (error) {

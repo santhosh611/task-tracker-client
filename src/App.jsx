@@ -30,32 +30,30 @@ import appContext from './context/AppContext';
 import { useEffect, useState } from 'react';
 import AttendanceManagement from './components/admin/AttendanceManagement';
 
-function getSubdomain() {
-  const host = window.location.hostname; // e.g., company1.localhost
-  const parts = host.split("."); // Split by "."
-
-  // If it's a local dev environment (e.g., company1.localhost)
-  if (host.includes("localhost") && parts.length > 1) {
-    return parts[0]; // Get first part (company1)
-  }
-
-  // If it's a production environment (e.g., company1.yourapp.com)
-  if (parts.length > 2) {
-    return parts[0]; // Get first part (company1)
-  }
-
-  return "main"; // Default if no subdomain
-}
-
 function App() {
-  const [subdomain, setSubdomain] = useState("main");
+  const [subdomain, setSubdomain] = useState(null);
+
+  const getSubdomain = () => {
+    return localStorage.getItem('tasktracker-subdomain') || null;
+  };
 
   useEffect(() => {
-    setSubdomain(getSubdomain());
+    const interval = setInterval(() => {
+      const current = getSubdomain();
+      setSubdomain(prev => {
+        if (prev !== current) {
+          return current;
+        }
+        return prev;
+      });
+    }, 1000); // check every 1 second
+
+    return () => clearInterval(interval);
   }, []);
 
   const context = {
-    subdomain
+    subdomain,
+    setSubdomain
   } 
 
   return (

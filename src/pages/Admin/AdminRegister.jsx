@@ -138,7 +138,7 @@ const AdminRegister = () => {
           <div className="form-group">
             <label htmlFor="username" className="form-label flex items-center">
               <FaLink className="h-5 w-5 mr-2 text-primary" />
-              Sub-Domain
+              Company name
             </label>
             <input
               type="text"
@@ -148,11 +148,8 @@ const AdminRegister = () => {
               value={formData.subdomain}
               onChange={handleSubdomainChange}
               required
-              placeholder="Enter your sub-domain"
+              placeholder="Enter your company name"
             />
-            <p className='text-ls text-gray-500 my-2'>
-              http://{formData.subdomain}.localhost:5000 {formData.subdomain !== "" ? (domainAvailable ? <span className='text-green-600'>*Available</span> : <span className='text-red-600'>*Not Available</span>) : null}
-            </p>
           </div>
 
           <div className="form-group">

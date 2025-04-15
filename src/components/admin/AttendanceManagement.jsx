@@ -115,7 +115,7 @@ const AttendanceManagement = () => {
                 <div className="flex items-center">
                     {record?.photo && (
                         <img
-                            src={`http://localhost:5000/uploads/${record.photo}` || `https://ui-avatars.com/api/?name=${encodeURIComponent(record.name)}`}
+                            src={`https://task-tracker-backend-1-r8os.onrender.com/uploads/${record.photo}` || `https://ui-avatars.com/api/?name=${encodeURIComponent(record.name)}`}
                             alt="Worker"
                             className="w-8 h-8 rounded-full mr-2"
                         />

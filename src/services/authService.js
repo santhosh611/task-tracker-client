@@ -27,6 +27,7 @@ export const login = async (credentials, userType) => {
     
     // Include department information
     localStorage.setItem('token', userData.token);
+    localStorage.setItem('tasktracker-subdomain', userData.subdomain);
     localStorage.setItem('user', JSON.stringify({
       _id: userData._id,
       username: userData.username,
@@ -46,6 +47,7 @@ export const login = async (credentials, userType) => {
 
 export const logout = () => {
   localStorage.removeItem('token');
+  localStorage.removeItem('tasktracker-subdomain');
   localStorage.removeItem('user');
 };
 

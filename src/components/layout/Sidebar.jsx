@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useContext, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { FaBars, FaTimes } from 'react-icons/fa';
 import { FiLogOut } from "react-icons/fi";
+import appContext from '../../context/AppContext';
 
 const Sidebar = ({
   links,
@@ -11,6 +12,8 @@ const Sidebar = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const location = useLocation();
+
+  const { subdomain } = useContext(appContext);
 
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
@@ -74,7 +77,7 @@ const Sidebar = ({
                 </div>
                 <div className="ml-3">
                   <p className="text-base font-medium text-white">{user.name || user.username}</p>
-                  <p className="text-sm font-medium text-gray-400">{user.department || user.role}</p>
+                  <p className="text-sm font-medium text-gray-400">{user.department || user.role} - {subdomain}</p>
                 </div>
               </div>
               <div className="ml-3">

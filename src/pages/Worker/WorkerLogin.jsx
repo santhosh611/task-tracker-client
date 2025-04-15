@@ -3,16 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import {
   FaSearch,
-  FaFilter,
   FaChevronLeft,
   FaChevronRight
 } from 'react-icons/fa';
+import { IoMdRefresh } from "react-icons/io";
 import { useAuth } from '../../hooks/useAuth';
 import { getPublicWorkers } from '../../services/workerService';
 import Button from '../../components/common/Button';
 import Spinner from '../../components/common/Spinner';
 import appContext from '../../context/AppContext';
-import { IoMdRefresh } from "react-icons/io";
 
 const WorkerLogin = () => {
   const [workers, setWorkers] = useState([]);
@@ -24,25 +23,32 @@ const WorkerLogin = () => {
   const [isLoadingWorkers, setIsLoadingWorkers] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [department, setDepartment] = useState('All');
+  const [manualSubdomain, setManualSubdomain] = useState('');
 
   const navigate = useNavigate();
   const { login } = useAuth();
-  
-  // Intelligent Pagination
+  const { subdomain, setSubdomain } = useContext(appContext);
+
   const workersPerPage = 12;
   const totalWorkers = filteredWorkers.length;
   const totalPages = Math.ceil(totalWorkers / workersPerPage);
-  
-  // Subdomain
-  const { subdomain } = useContext(appContext);
 
-  // Fetch workers with advanced pagination
+  // Handle subdomain submission
+  const handleSubdomainSubmit = (e) => {
+    e.preventDefault();
+    if (!manualSubdomain) {
+      toast.error('Please enter a subdomain.');
+      return;
+    }
+    localStorage.setItem('tasktracker-subdomain', manualSubdomain);
+    setSubdomain(manualSubdomain);
+  };
+
+  // Load workers
   const loadWorkers = useCallback(async () => {
-    try {
-      if (!subdomain || subdomain == 'main') {
-        return;
-      }
+    if (!subdomain || subdomain === 'main') return;
 
+    try {
       setIsLoadingWorkers(true);
       const workersData = await getPublicWorkers({ subdomain });
       setWorkers(workersData || []);
@@ -52,43 +58,36 @@ const WorkerLogin = () => {
     } finally {
       setIsLoadingWorkers(false);
     }
-  }, []);
+  }, [subdomain]);
 
   useEffect(() => {
     loadWorkers();
-  }, [loadWorkers]);
+  }, [loadWorkers, subdomain]);
 
-  // Advanced Filtering
+  // Filter workers
   useEffect(() => {
-    const filterWorkers = () => {
-      const filtered = workers.filter(worker => {
-        const matchesSearch = !searchTerm ||
-          worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          (worker.department && worker.department.toLowerCase().includes(searchTerm.toLowerCase()));
+    const filtered = workers.filter(worker => {
+      const matchesSearch = !searchTerm ||
+        worker.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (worker.department && worker.department.toLowerCase().includes(searchTerm.toLowerCase()));
 
-        const matchesDepartment = department === 'All' ||
-          worker.department === department;
+      const matchesDepartment = department === 'All' ||
+        worker.department === department;
 
-        return matchesSearch && matchesDepartment;
-      });
+      return matchesSearch && matchesDepartment;
+    });
 
-      setFilteredWorkers(filtered);
-      setCurrentPage(1);
-    };
-
-    filterWorkers();
+    setFilteredWorkers(filtered);
+    setCurrentPage(1);
   }, [workers, searchTerm, department]);
 
-  // Paginated Workers
   const paginatedWorkers = filteredWorkers.slice(
     (currentPage - 1) * workersPerPage,
     currentPage * workersPerPage
   );
 
-  // Departments List
   const departments = ['All', ...new Set(workers.map(w => w.department).filter(Boolean))];
 
-  // Login Handler
   const handleLogin = async (e) => {
     e.preventDefault();
 
@@ -97,7 +96,7 @@ const WorkerLogin = () => {
       return;
     }
 
-    if (!subdomain || subdomain == 'main') {
+    if (!subdomain || subdomain === 'main') {
       toast.error('Subdomain is missing, please check the URL');
       return;
     }
@@ -111,8 +110,6 @@ const WorkerLogin = () => {
         subdomain
       }, 'worker');
 
-      response.data && console.log(response.data);
-
       toast.success(`Welcome, ${selectedWorker.name}!`);
       navigate('/worker');
     } catch (error) {
@@ -122,7 +119,6 @@ const WorkerLogin = () => {
     }
   };
 
-  // Pagination Logic
   const renderPagination = () => {
     if (totalPages <= 1) return null;
 
@@ -135,58 +131,63 @@ const WorkerLogin = () => {
       startPage = Math.max(1, endPage - maxPagesToShow + 1);
     }
 
-    // Previous button
     if (currentPage > 1) {
       pageNumbers.push(
-        <button
-          key="prev"
-          onClick={() => setCurrentPage(currentPage - 1)}
-          className="px-3 py-1 bg-gray-200 rounded"
-        >
+        <button key="prev" onClick={() => setCurrentPage(currentPage - 1)} className="px-3 py-1 bg-gray-200 rounded">
           <FaChevronLeft />
         </button>
       );
     }
 
-    // Page numbers
     for (let i = startPage; i <= endPage; i++) {
       pageNumbers.push(
         <button
           key={i}
           onClick={() => setCurrentPage(i)}
-          className={`
-            px-4 py-1 
-            ${currentPage === i
-              ? 'bg-primary text-white'
-              : 'bg-gray-200 text-gray-700'}
-            rounded
-          `}
+          className={`px-4 py-1 ${currentPage === i ? 'bg-primary text-white' : 'bg-gray-200 text-gray-700'} rounded`}
         >
           {i}
         </button>
       );
     }
 
-    // Next button
     if (currentPage < totalPages) {
       pageNumbers.push(
-        <button
-          key="next"
-          onClick={() => setCurrentPage(currentPage + 1)}
-          className="px-3 py-1 bg-gray-200 rounded"
-        >
+        <button key="next" onClick={() => setCurrentPage(currentPage + 1)} className="px-3 py-1 bg-gray-200 rounded">
           <FaChevronRight />
         </button>
       );
     }
 
-    return (
-      <div className="flex justify-center items-center space-x-2 mt-6">
-        {pageNumbers}
-      </div>
-    );
+    return <div className="flex justify-center items-center space-x-2 mt-6">{pageNumbers}</div>;
   };
 
+  // Show subdomain form if subdomain is missing
+  if (!subdomain || subdomain === 'main') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+        <form
+          onSubmit={handleSubdomainSubmit}
+          className="bg-white p-8 rounded shadow-md w-full max-w-md"
+        >
+          <h2 className="text-xl font-bold mb-4 text-center">Enter Your Subdomain</h2>
+          <input
+            type="text"
+            placeholder="e.g. company123"
+            value={manualSubdomain}
+            onChange={(e) => setManualSubdomain(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded mb-4"
+            required
+          />
+          <Button type="submit" variant="primary" fullWidth>
+            Continue
+          </Button>
+        </form>
+      </div>
+    );
+  }
+
+  // Main Worker Login UI
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="container mx-auto">
@@ -226,22 +227,7 @@ const WorkerLogin = () => {
             No workers found. Try adjusting your search or filter.
             <button
               className='block mx-auto bg-white border border-gray-300 p-2 my-2 rounded-md'
-              onClick={async () => {
-                try {
-                  if (!subdomain || subdomain == 'main') {
-                    toast.error('Subdomain is missing, check the URL.');
-                    return;
-                  }
-                  setIsLoadingWorkers(true);
-                  const workersData = await getPublicWorkers({ subdomain });
-                  setWorkers(workersData || []);
-                } catch (error) {
-                  console.error('Worker load error:', error);
-                  toast.error('Failed to load workers. Please try again later.');
-                } finally {
-                  setIsLoadingWorkers(false);
-                }
-              }}
+              onClick={loadWorkers}
             >
               <IoMdRefresh />
             </button>
@@ -253,17 +239,11 @@ const WorkerLogin = () => {
                 <div
                   key={worker._id}
                   onClick={() => setSelectedWorker(worker)}
-                  className={`
-                    cursor-pointer 
-                    p-4 
-                    rounded-lg 
-                    text-center 
-                    transition-all 
-                    hover:shadow-lg 
-                    ${selectedWorker?._id === worker._id
+                  className={`cursor-pointer p-4 rounded-lg text-center transition-all hover:shadow-lg ${
+                    selectedWorker?._id === worker._id
                       ? 'bg-primary/10 border-2 border-primary'
-                      : 'bg-white border border-gray-200'}
-                  `}
+                      : 'bg-white border border-gray-200'
+                  }`}
                 >
                   <div className="w-20 h-20 rounded-full mx-auto mb-2 bg-primary text-white flex items-center justify-center font-bold text-2xl">
                     {worker.name.charAt(0).toUpperCase()}
@@ -278,7 +258,6 @@ const WorkerLogin = () => {
           </>
         )}
 
-        {/* Login Modal */}
         {selectedWorker && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg p-6 w-full max-w-md">
