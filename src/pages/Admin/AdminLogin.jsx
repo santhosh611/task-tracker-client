@@ -47,7 +47,7 @@ const AdminLogin = () => {
     
     try {
       const result = await login(credentials, 'admin');
-      console.log("result: ", result);
+      localStorage.setItem('tasktracker-subdomain', result.subdomain);
       toast.success('Login successful!');
       navigate('/admin');
     } catch (error) {
