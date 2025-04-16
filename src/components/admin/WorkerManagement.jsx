@@ -522,7 +522,7 @@ const WorkerManagement = () => {
             <div className="flex items-center">
               {selectedWorker?.photo && (
                 <img
-                  src={`/uploads/${selectedWorker.photo}`}
+                  src={`https://task-tracker-backend-1-r8os.onrender.com/uploads/${selectedWorker.photo}`}
                   alt="Current Photo"
                   className="w-20 h-20 rounded-full object-cover mr-4"
                 />
