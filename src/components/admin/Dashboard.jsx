@@ -32,39 +32,38 @@ const Dashboard = () => {
   const [topWorkers, setTopWorkers] = useState([]);
   const { subdomain } = useContext(appContext);
 
-  useEffect(() => {
-    const loadDashboardData = async () => {
-      setIsLoading(true);
-      try {
-        const [
-          workersDataRaw,
-          tasksDataRaw,
-          topicsDataRaw,
-          columnsDataRaw,
-          leavesDataRaw,
-          commentsDataRaw,
-        ] = await Promise.all([
-          getWorkers({ subdomain }),
-          getAllTasks({ subdomain }),
-          getTopics({ subdomain }),
-          getColumns({ subdomain }),
-          getAllLeaves({ subdomain }),
-          getAllComments({ subdomain }),
-        ]);
+  const loadDashboardData = async () => {
+    setIsLoading(true);
+    try {
+      const [
+        workersDataRaw,
+        tasksDataRaw,
+        topicsDataRaw,
+        columnsDataRaw,
+        leavesDataRaw,
+        commentsDataRaw,
+      ] = await Promise.all([
+        getWorkers({ subdomain }),
+        getAllTasks({ subdomain }),
+        getTopics({ subdomain }),
+        getColumns({ subdomain }),
+        getAllLeaves({ subdomain }),
+        getAllComments({ subdomain }),
+      ]);
 
-        // Defensive check: ensure leavesData is an array
-        const workersData = Array.isArray(workersDataRaw) ? workersDataRaw : [];
-        const tasksData = Array.isArray(tasksDataRaw) ? tasksDataRaw : [];
-        const topicsData = Array.isArray(topicsDataRaw) ? topicsDataRaw : [];
-        const columnsData = Array.isArray(columnsDataRaw) ? columnsDataRaw : [];
-        const leavesData = Array.isArray(leavesDataRaw) ? leavesDataRaw : [];
-        const commentsData = Array.isArray(commentsDataRaw) ? commentsDataRaw : [];
+      // Defensive check: ensure leavesData is an array
+      const workersData = Array.isArray(workersDataRaw) ? workersDataRaw : [];
+      const tasksData = Array.isArray(tasksDataRaw) ? tasksDataRaw : [];
+      const topicsData = Array.isArray(topicsDataRaw) ? topicsDataRaw : [];
+      const columnsData = Array.isArray(columnsDataRaw) ? columnsDataRaw : [];
+      const leavesData = Array.isArray(leavesDataRaw) ? leavesDataRaw : [];
+      const commentsData = Array.isArray(commentsDataRaw) ? commentsDataRaw : [];
 
-       // Calculate stats for leaves and comments
+      // Calculate stats for leaves and comments
       const pendingLeaves = leavesData.filter(leave => leave.status === 'Pending');
       const approvedLeaves = leavesData.filter(leave => leave.status === 'Approved');
       const rejectedLeaves = leavesData.filter(leave => leave.status === 'Rejected');
-      const unreadComments = commentsData.filter(comment => 
+      const unreadComments = commentsData.filter(comment =>
         comment.isNew || comment.replies?.some(reply => reply.isNew)
       );
 
@@ -99,8 +98,13 @@ const Dashboard = () => {
     }
   };
 
-  loadDashboardData();
-}, []);
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, [subdomain])
 
   if (isLoading) {
     return (
@@ -113,7 +117,7 @@ const Dashboard = () => {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Admin Dashboard</h1>
-      
+
       {/* Stats cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
         <Card className="bg-blue-50 border-l-4 border-blue-500">
@@ -128,7 +132,7 @@ const Dashboard = () => {
             Manage Workers →
           </Link>
         </Card>
-        
+
         <Card className="bg-green-50 border-l-4 border-green-500">
           <div className="flex justify-between items-center">
             <div>
@@ -141,7 +145,7 @@ const Dashboard = () => {
             View Tasks →
           </Link>
         </Card>
-        
+
         <Card className="bg-purple-50 border-l-4 border-purple-500">
           <div className="flex justify-between items-center">
             <div>
@@ -154,7 +158,7 @@ const Dashboard = () => {
             Manage Topics →
           </Link>
         </Card>
-        
+
         <Card className="bg-indigo-50 border-l-4 border-indigo-500">
           <div className="flex justify-between items-center">
             <div>
@@ -168,7 +172,7 @@ const Dashboard = () => {
           </Link>
         </Card>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Leave stats */}
         <Card title="Leave Requests">
@@ -186,7 +190,7 @@ const Dashboard = () => {
             View All Leave Requests →
           </Link>
         </Card>
-        
+
         {/* Top workers */}
         <Card title="Top Workers">
           <div className="space-y-4">
