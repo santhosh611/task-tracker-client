@@ -1,4 +1,4 @@
-// src/services/authService.js
+
 import api from '../hooks/useAxios';
 
 export const subdomainAvailable = async (formData) => {

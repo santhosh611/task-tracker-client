@@ -76,33 +76,33 @@ const WorkerLayout = ({ children }) => {
   const sidebarLinks = [
     {
       to: '/worker',
-      icon: <FaHome />,
+      icon: <FaHome style={{ color: '#4A90E2' }}/>,
       label: 'Dashboard'
     },
     {
       to: '/worker/attendance',
-      icon: <FaRegCalendarCheck />,
+      icon: <FaRegCalendarCheck style={{ color: '#7ED321' }}/>,
       label: 'Attendance Report'
     },
     {
       to: '/worker/food-request', 
-      icon: <FaPizzaSlice/>,  
+      icon: <FaPizzaSlice style={{ color: '#F5A623' }}/>,  
       label: 'Food Request'
     },
     {
       to: '/worker/leave-apply',
-      icon: <FaCalendarPlus />,
+      icon: <FaCalendarPlus style={{ color: '#9B59B6' }}/>,
       label: 'Apply for Leave'
     },
     {
       to: '/worker/leave-requests',
-      icon: <FaCalendarCheck />,
+      icon: <FaCalendarCheck style={{ color: '#D0021B' }}/>,
       label: 'Leave Requests',
       badge: leaveUpdates > 0 ? leaveUpdates : null
     },
     {
       to: '/worker/comments',
-      icon: <FaComments />,
+      icon: <FaComments style={{ color: '#1ABC9C' }}/>,
       label: 'Comments',
       badge: newComments > 0 ? newComments : null
     }

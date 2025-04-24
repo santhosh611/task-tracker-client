@@ -65,58 +65,58 @@ const AdminLayout = () => {
   const sidebarLinks = [
     {
       to: '/admin',
-      icon: <FaHome />,
+      icon: <FaHome style={{ color: '#3B82F6' }} />, // Blue for Dashboard
       label: 'Dashboard'
     },
     {
       to: '/admin/workers',
-      icon: <FaUsers />,
+      icon: <FaUsers style={{ color: '#10B981' }} />, // Green for Workers
       label: 'Workers'
     },
     {
       to: '/admin/attendance',
-      icon: <FaRegCalendarCheck />,
+      icon: <FaRegCalendarCheck style={{ color: '#F43F5E' }} />, // Red for Attendance
       label: 'Attendance'
     },
     {
       to: '/admin/departments',
-      icon: <FaBuilding />,
+      icon: <FaBuilding style={{ color: '#4A90E2' }}/>,
       label: 'Departments'
     },
     {
       to: '/admin/tasks',
-      icon: <FaTasks />,
+      icon: <FaTasks style={{ color: '#7ED321' }}/>,
       label: 'Tasks'
     },
     {
       to: '/admin/food-requests',
-      icon: <FaPizzaSlice />,
+      icon: <FaPizzaSlice style={{ color: '#F5A623' }}/>,
       label: 'Food Requests'
     },
     {
       to: '/admin/columns',
-      icon: <FaColumns />,
+      icon: <FaColumns style={{ color: '#9B9B9B' }}/>,
       label: 'columns'
     },
     {
       to: '/admin/topics',
-      icon: <FaTags />,
+      icon: <FaTags style={{ color: '#9B59B6' }}/>,
       label: 'Topics'
     },
     {
       to: '/admin/custom-tasks',
-      icon: <FaClipboardList />,
+      icon: <FaClipboardList style={{ color: '#F78FB3' }}/>,
       label: 'Custom Tasks'
     },
     {
       to: '/admin/leaves',
-      icon: <FaCalendarAlt />,
+      icon: <FaCalendarAlt style={{ color: '#D0021B' }}/>,
       label: 'Leave Requests',
       badge: pendingLeaves > 0 ? pendingLeaves : null
     },
     {
       to: '/admin/comments',
-      icon: <FaComments />,
+      icon: <FaComments style={{ color: '#1ABC9C' }}/>,
       label: 'Comments',
       badge: newComments > 0 ? newComments : null
     }

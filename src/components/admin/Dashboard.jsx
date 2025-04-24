@@ -199,7 +199,10 @@ const Dashboard = () => {
                 <div key={worker._id} className="flex items-center">
                   <span className="text-lg font-bold w-8">{index + 1}</span>
                   <img
-                    src={`https://task-tracker-backend-1-r8os.onrender.com${worker.photoUrl}` || `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`}
+                    src={worker.photoUrl 
+                      ? `${import.meta.env.VITE_API_URL.replace('/api', '')}${worker.photoUrl}` 
+                      : `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`}
+                    
                     alt={worker.name}
                     className="w-10 h-10 rounded-full mr-3 object-cover"
                   />

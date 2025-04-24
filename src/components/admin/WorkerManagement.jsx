@@ -266,7 +266,10 @@ const WorkerManagement = () => {
         <div className="flex items-center">
           {record?.photo && (
             <img
-              src={`https://task-tracker-backend-1-r8os.onrender.com/uploads/${record.photo}` || `https://ui-avatars.com/api/?name=${encodeURIComponent(record.name)}`}
+            src={record.photo 
+              ? `${import.meta.env.VITE_API_URL.replace('/api', '')}/uploads/${record.photo}` 
+              : `https://ui-avatars.com/api/?name=${encodeURIComponent(record.name)}`}
+            
               alt="Worker"
               className="w-8 h-8 rounded-full mr-2"
             />
@@ -522,7 +525,8 @@ const WorkerManagement = () => {
             <div className="flex items-center">
               {selectedWorker?.photo && (
                 <img
-                  src={`https://task-tracker-backend-1-r8os.onrender.com/uploads/${selectedWorker.photo}`}
+                src={`${import.meta.env.VITE_API_URL.replace('/api', '')}/uploads/${selectedWorker.photo}`}
+
                   alt="Current Photo"
                   className="w-20 h-20 rounded-full object-cover mr-4"
                 />

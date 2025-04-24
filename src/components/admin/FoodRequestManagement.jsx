@@ -25,6 +25,7 @@ const FoodRequestManagement = () => {
       const formatted = data.map((req) => ({
         name: req.worker?.name || 'N/A',
         rfid: req.worker?.rfid || 'N/A',
+        photo: req.worker?.photo || 'N/A',
         department: req.department?.name || 'N/A',
         date: new Date(req.date).toLocaleString(),
       }));
@@ -65,6 +66,21 @@ const FoodRequestManagement = () => {
     {
       header: 'Name',
       accessor: 'name',
+      render: (record) => {
+        const imageUrl = `${import.meta.env.VITE_API_URL.replace('/api', '')}/uploads/${record.photo}`;
+        return (
+          <div className="flex items-center">
+            {record?.photo && (
+              <img
+                src={imageUrl}
+                alt="Worker"
+                className="w-8 h-8 rounded-full mr-2"
+              />
+            )}
+            {record?.name || 'Unknown'}
+          </div>
+        );
+      }
     },
     {
       header: 'Employee ID',

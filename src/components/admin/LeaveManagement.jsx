@@ -86,21 +86,26 @@ const LeaveManagement = () => {
           <p className="text-sm text-gray-500">
             {leave.leaveType} • {new Date(leave.createdAt).toLocaleString()}
           </p>
+          <p className="text-sm text-gray-500">
+            From: {new Date(leave.startDate).toLocaleDateString()} - To: {new Date(leave.endDate).toLocaleDateString()}
+          </p>
+          <p className="text-sm text-gray-500">
+            Total days: {leave.totalDays}
+          </p>
         </div>
         <span
-          className={`px-2 py-1 rounded-full text-xs ${
-            leave.status === 'Approved'
+          className={` px-2 h-8 flex justify-center items-center rounded-full text-xs ${leave.status === 'Approved'
               ? 'bg-green-100 text-green-800'
               : leave.status === 'Rejected'
-              ? 'bg-red-100 text-red-800'
-              : 'bg-yellow-100 text-yellow-800'
-          }`}
+                ? 'bg-red-100 text-red-800'
+                : 'bg-yellow-100 text-yellow-800'
+            }`}
         >
           {leave.status}
         </span>
       </div>
 
-      <p className="mt-2">{leave.reason}</p>
+      <p className="mt-2 text-gray-500">Reason: {leave.reason}</p>
 
       {leave.status === 'Pending' && (
         <div className="mt-4 flex space-x-2">
@@ -126,11 +131,10 @@ const LeaveManagement = () => {
   const displayLeaves = showAllLeaves ? filteredLeaves : filteredLeaves.slice(0, 5);
 
   const getTabClassName = (tabName) => {
-    return `px-3 py-1 rounded-md cursor-pointer ${
-      activeView === tabName
+    return `px-3 py-1 rounded-md cursor-pointer ${activeView === tabName
         ? 'bg-blue-600 text-white'
         : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-    }`;
+      }`;
   };
 
   return (
