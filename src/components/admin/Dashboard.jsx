@@ -199,8 +199,8 @@ const Dashboard = () => {
                 <div key={worker._id} className="flex items-center">
                   <span className="text-lg font-bold w-8">{index + 1}</span>
                   <img
-                    src={worker.photoUrl 
-                      ? `${import.meta.env.VITE_API_URL.replace('/api', '')}${worker.photoUrl}` 
+                    src={worker.photo 
+                      ? worker.photo 
                       : `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}`}
                     
                     alt={worker.name}

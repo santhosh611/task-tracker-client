@@ -267,7 +267,7 @@ const WorkerManagement = () => {
           {record?.photo && (
             <img
             src={record.photo 
-              ? `${import.meta.env.VITE_API_URL.replace('/api', '')}/uploads/${record.photo}` 
+              ? record.photo 
               : `https://ui-avatars.com/api/?name=${encodeURIComponent(record.name)}`}
             
               alt="Worker"
@@ -525,7 +525,7 @@ const WorkerManagement = () => {
             <div className="flex items-center">
               {selectedWorker?.photo && (
                 <img
-                src={`${import.meta.env.VITE_API_URL.replace('/api', '')}/uploads/${selectedWorker.photo}`}
+                src={selectedWorker.photo}
 
                   alt="Current Photo"
                   className="w-20 h-20 rounded-full object-cover mr-4"

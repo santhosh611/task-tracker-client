@@ -181,7 +181,7 @@ const AttendanceManagement = () => {
                     {record?.photo && (
                         <img
                             src={record.photo
-                                ? `${import.meta.env.VITE_API_URL.replace('/api', '')}/uploads/${record.photo}`
+                                ? record.photo
                                 : `https://ui-avatars.com/api/?name=${encodeURIComponent(record.name)}`}
 
                             alt="Worker"

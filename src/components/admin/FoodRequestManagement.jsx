@@ -67,7 +67,7 @@ const FoodRequestManagement = () => {
       header: 'Name',
       accessor: 'name',
       render: (record) => {
-        const imageUrl = `${import.meta.env.VITE_API_URL.replace('/api', '')}/uploads/${record.photo}`;
+        const imageUrl = record.photo;
         return (
           <div className="flex items-center">
             {record?.photo && (

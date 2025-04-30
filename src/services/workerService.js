@@ -1,11 +1,12 @@
 import api from '../hooks/useAxios';
 import { getAuthToken } from '../utils/authUtils';
+import uploadUtils from '../utils/uploadUtils';
 
 export const createWorker = async (workerData) => {
   try {
     console.log('Worker data:', workerData);
     const token = getAuthToken();
-    
+
     // Enhanced client-side validation
     if (!workerData.name || workerData.name.trim() === '') {
       throw new Error('Name is required and cannot be empty');
@@ -23,18 +24,16 @@ export const createWorker = async (workerData) => {
       throw new Error('Department is required');
     }
 
-    const formData = new FormData();
-    Object.keys(workerData).forEach(key => {
-      if (key === 'photo' && workerData.photo) {
-        formData.append('photo', workerData.photo, workerData.photo.name);
-      } else {
-        formData.append(key, workerData[key]);
-      }
-    });
+    const urlResponse = await uploadUtils(workerData.photo);
 
-    const response = await api.post('/workers', formData, {
+    console.log('urlResponse: ', urlResponse);
+    workerData.photo = urlResponse;
+    console.log('workerData: ', workerData);
+    console.log(token);
+
+    const response = await api.post('/workers', workerData, {
       headers: { 
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       }
     });
@@ -85,18 +84,14 @@ export const updateWorker = async (id, workerData) => {
     const token = getAuthToken();
     const formData = new FormData();
     
-    // Append all data to formData
-    Object.keys(workerData).forEach(key => {
-      if (key === 'photo' && workerData.photo instanceof File) {
-        formData.append('photo', workerData.photo, workerData.photo.name);
-      } else if (workerData[key] !== undefined) {
-        formData.append(key, workerData[key]);
-      }
-    });
+    if (workerData.photo) {
+      const urlResponse = await uploadUtils(workerData.photo);
+      workerData.photo = urlResponse;
+    }
 
-    const response = await api.put(`/workers/${id}`, formData, {
+    const response = await api.put(`/workers/${id}`, workerData, {
       headers: { 
-        'Content-Type': 'multipart/form-data',
+        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       }
     });

@@ -116,8 +116,7 @@ const AttendanceReport = () => {
                 <div className="flex items-center">
                     {record?.photo && (
                         <img
-                            src={`${import.meta.env.VITE_API_URL.replace('/api', '')}/uploads/${record.photo}` || `https://ui-avatars.com/api/?name=${encodeURIComponent(record.name)}`}
-
+                            src= {record.photo ? record.photo : `https://ui-avatars.com/api/?name=${encodeURIComponent(record.name)}`}
                             alt="Worker"
                             className="w-8 h-8 rounded-full mr-2"
                         />
