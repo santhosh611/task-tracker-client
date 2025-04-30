@@ -11,7 +11,8 @@ import {
   FaTags,
   FaPizzaSlice,
   FaClipboardList,
-  FaRegCalendarCheck
+  FaRegCalendarCheck,
+  FaRegBell
 } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
 import { getAllLeaves } from '../../services/leaveService';
@@ -113,6 +114,12 @@ const AdminLayout = () => {
       icon: <FaCalendarAlt style={{ color: '#D0021B' }}/>,
       label: 'Leave Requests',
       badge: pendingLeaves > 0 ? pendingLeaves : null
+    },
+    {
+      to: '/admin/notifications',
+      icon: <FaRegBell style={{ color: '#1ABC9C' }}/>,
+      label: 'Notifications',
+      badge: newComments > 0 ? newComments : null
     },
     {
       to: '/admin/comments',

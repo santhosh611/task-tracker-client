@@ -29,6 +29,7 @@ import PrivateRoute from './components/common/PrivateRoute';
 import appContext from './context/AppContext';
 import { useEffect, useState } from 'react';
 import AttendanceManagement from './components/admin/AttendanceManagement';
+import NotificationManagement from './components/admin/NotificationManagement';
 
 function App() {
   const [subdomain, setSubdomain] = useState(null);
@@ -79,6 +80,7 @@ function App() {
             <Route path="topics" element={<TopicManagement />} />
             <Route path="food-requests" element={<FoodRequestManagement />} />
             <Route path="custom-tasks" element={<CustomTasks />} />
+            <Route path="notifications" element={<NotificationManagement />} />
             {/* Catch-all route for unknown admin paths */}
             <Route path="*" element={<Navigate to="/admin" replace />} />
           </Route>

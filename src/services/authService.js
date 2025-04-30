@@ -1,4 +1,3 @@
-
 import api from '../hooks/useAxios';
 
 export const subdomainAvailable = async (formData) => {
