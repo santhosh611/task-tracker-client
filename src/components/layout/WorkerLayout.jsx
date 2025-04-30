@@ -1,20 +1,21 @@
 import { useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-import { 
-  FaHome, 
-  FaCalendarPlus, 
-  FaCalendarCheck, 
+import {
+  FaHome,
+  FaCalendarPlus,
+  FaCalendarCheck,
   FaComments,
-  FaPizzaSlice, 
-  FaRegCalendarCheck
-  
+  FaPizzaSlice,
+  FaRegCalendarCheck,
+  FaRegBell
+
 } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
 import { getMyLeaves } from '../../services/leaveService';
-import { 
-  getMyComments, 
-  getUnreadAdminReplies 
+import {
+  getMyComments,
+  getUnreadAdminReplies
 } from '../../services/commentService';
 import Sidebar from './Sidebar';
 import appContext from '../../context/AppContext';
@@ -25,7 +26,7 @@ const WorkerLayout = ({ children }) => {
   const [leaveUpdates, setLeaveUpdates] = useState(0);
   const navigate = useNavigate();
   const { subdomain } = useContext(appContext);
-  
+
   // Check for new comments and leave updates
   useEffect(() => {
     const fetchNotificationCounts = async () => {
@@ -36,8 +37,8 @@ const WorkerLayout = ({ children }) => {
 
         // Fetch leaves
         const leaves = await getMyLeaves({ subdomain });
-        const unviewedLeaves = leaves.filter(leave => 
-          !leave.workerViewed && 
+        const unviewedLeaves = leaves.filter(leave =>
+          !leave.workerViewed &&
           (leave.status === 'Pending' || leave.status === 'Approved')
         ).length;
         setLeaveUpdates(unviewedLeaves);
@@ -45,9 +46,9 @@ const WorkerLayout = ({ children }) => {
         // Fetch comments
         const comments = await getMyComments();
         const unreadAdminReplies = await getUnreadAdminReplies();
-        
-        const newUnreadComments = comments.filter(comment => 
-          comment.isNew || 
+
+        const newUnreadComments = comments.filter(comment =>
+          comment.isNew ||
           (comment.replies && comment.replies.some(reply => reply.isNew))
         ).length;
 
@@ -67,47 +68,53 @@ const WorkerLayout = ({ children }) => {
     // Cleanup interval on component unmount
     return () => clearInterval(intervalId);
   }, []);
-  
+
   const handleLogout = () => {
     logout();
     navigate('/worker/login');
   };
-  
+
   const sidebarLinks = [
     {
       to: '/worker',
-      icon: <FaHome style={{ color: '#4A90E2' }}/>,
+      icon: <FaHome style={{ color: '#4A90E2' }} />,
       label: 'Dashboard'
     },
     {
       to: '/worker/attendance',
-      icon: <FaRegCalendarCheck style={{ color: '#7ED321' }}/>,
+      icon: <FaRegCalendarCheck style={{ color: '#7ED321' }} />,
       label: 'Attendance Report'
     },
     {
-      to: '/worker/food-request', 
-      icon: <FaPizzaSlice style={{ color: '#F5A623' }}/>,  
+      to: '/worker/food-request',
+      icon: <FaPizzaSlice style={{ color: '#F5A623' }} />,
       label: 'Food Request'
     },
     {
       to: '/worker/leave-apply',
-      icon: <FaCalendarPlus style={{ color: '#9B59B6' }}/>,
+      icon: <FaCalendarPlus style={{ color: '#9B59B6' }} />,
       label: 'Apply for Leave'
     },
     {
       to: '/worker/leave-requests',
-      icon: <FaCalendarCheck style={{ color: '#D0021B' }}/>,
+      icon: <FaCalendarCheck style={{ color: '#D0021B' }} />,
       label: 'Leave Requests',
       badge: leaveUpdates > 0 ? leaveUpdates : null
     },
     {
+      to: '/worker/notifications',
+      icon: <FaRegBell style={{ color: '#ccffcc' }} />,
+      label: 'Notifications',
+      badge: newComments > 0 ? newComments : null
+    },
+    {
       to: '/worker/comments',
-      icon: <FaComments style={{ color: '#1ABC9C' }}/>,
+      icon: <FaComments style={{ color: '#1ABC9C' }} />,
       label: 'Comments',
       badge: newComments > 0 ? newComments : null
     }
   ];
-  
+
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar
@@ -119,7 +126,7 @@ const WorkerLayout = ({ children }) => {
         }}
         onLogout={handleLogout}
       />
-      
+
       <div className="flex-1 overflow-auto md:ml-64">
         <main className="p-4 md:p-6">
           {children}

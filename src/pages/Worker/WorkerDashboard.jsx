@@ -6,6 +6,7 @@ import LeaveRequests from '../../components/worker/LeaveRequests';
 import Comments from '../../components/worker/Comments';
 import FoodRequest from '../../components/worker/FoodRequest';
 import AttendanceReport from '../../components/worker/AttendanceReport';
+import Notifications from '../../components/worker/Notifications';
 
 const WorkerDashboard = () => {
   return (
@@ -17,6 +18,7 @@ const WorkerDashboard = () => {
         <Route path="/leave-requests" element={<LeaveRequests />} />
         <Route path="/comments" element={<Comments />} />
         <Route path="/food-request" element={<FoodRequest />} />
+        <Route path="/notifications" element={<Notifications />} />
         
         {/* Redirect to dashboard for unknown routes */}
         <Route path="*" element={<Navigate to="/worker" replace />} />

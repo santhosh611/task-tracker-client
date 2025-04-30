@@ -117,7 +117,7 @@ const AdminLayout = () => {
     },
     {
       to: '/admin/notifications',
-      icon: <FaRegBell style={{ color: '#1ABC9C' }}/>,
+      icon: <FaRegBell style={{ color: '#ccffcc' }}/>,
       label: 'Notifications',
       badge: newComments > 0 ? newComments : null
     },
