@@ -71,7 +71,7 @@ const Dashboard = () => {
       <Card title="Greetings!" className='mb-6'>
         <p>
           Hi {user.username}! Welcome to <strong>{user.subdomain}</strong>. <br />
-          Your base monthly salary is <strong>Rs.{user.salary}</strong>, and thanks to your efforts this month, your final salary is <strong>Rs.{user.finalSalary.toFixed(2)}</strong>.
+          Your base monthly salary is <strong>Rs.{user.salary.toFixed(2)}</strong>, and thanks to your efforts this month, your final salary is <strong>Rs.{user.finalSalary.toFixed(2)}</strong>.
         </p>
       </Card>
 
