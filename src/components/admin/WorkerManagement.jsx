@@ -9,6 +9,7 @@ import Table from '../common/Table';
 import Modal from '../common/Modal';
 import Spinner from '../common/Spinner';
 import appContext from '../../context/AppContext';
+import QRCode from 'qrcode';
 
 const WorkerManagement = () => {
   const [workers, setWorkers] = useState([]);
@@ -43,35 +44,35 @@ const WorkerManagement = () => {
   const { subdomain } = useContext(appContext);
 
   // Load workers and departments
+  const loadData = async () => {
+    setIsLoading(true);
+    setIsLoadingDepartments(true);
+
+    try {
+      const [workersData, departmentsData] = await Promise.all([
+        getWorkers({ subdomain }),
+        getDepartments({ subdomain })
+      ]);
+
+      // Ensure data is an array
+      const safeWorkersData = Array.isArray(workersData) ? workersData : [];
+      const safeDepartmentsData = Array.isArray(departmentsData) ? departmentsData : [];
+
+      setWorkers(safeWorkersData);
+      setDepartments(safeDepartmentsData);
+    } catch (error) {
+      toast.error('Failed to load data');
+      console.error(error);
+      // Set to empty arrays in case of error
+      setWorkers([]);
+      setDepartments([]);
+    } finally {
+      setIsLoading(false);
+      setIsLoadingDepartments(false);
+    }
+  };
+
   useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      setIsLoadingDepartments(true);
-
-      try {
-        const [workersData, departmentsData] = await Promise.all([
-          getWorkers({ subdomain }),
-          getDepartments({ subdomain })
-        ]);
-
-        // Ensure data is an array
-        const safeWorkersData = Array.isArray(workersData) ? workersData : [];
-        const safeDepartmentsData = Array.isArray(departmentsData) ? departmentsData : [];
-
-        setWorkers(safeWorkersData);
-        setDepartments(safeDepartmentsData);
-      } catch (error) {
-        toast.error('Failed to load data');
-        console.error(error);
-        // Set to empty arrays in case of error
-        setWorkers([]);
-        setDepartments([]);
-      } finally {
-        setIsLoading(false);
-        setIsLoadingDepartments(false);
-      }
-    };
-
     loadData();
   }, []);
 
@@ -105,7 +106,7 @@ const WorkerManagement = () => {
   // Open add worker modal
   const openAddModal = () => {
     setFormData(prev => ({
-      ...prev, 
+      ...prev,
       name: '',
       username: '',
       password: '',
@@ -115,8 +116,6 @@ const WorkerManagement = () => {
     getWorkerId();
     setIsAddModalOpen(true);
   };
-
-
 
   // Open edit worker modal
   const openEditModal = (worker) => {
@@ -131,8 +130,8 @@ const WorkerManagement = () => {
       username: worker.username,
       department: departmentId, // Use the department ID
       photo: worker.photo || '',
+      salary: worker.salary,
       password: '',
-      salary: 0,
       confirmPassword: ''
     });
     setIsEditModalOpen(true);
@@ -141,6 +140,18 @@ const WorkerManagement = () => {
   const openDeleteModal = (worker) => {
     setSelectedWorker(worker);
     setIsDeleteModalOpen(true);
+  };
+
+  const generateQRCode = async (username, uniqueId) => {
+    try {
+      const qrCodeDataURL = await QRCode.toDataURL(uniqueId, { width: 300 });
+      const link = document.createElement('a');
+      link.href = qrCodeDataURL;
+      link.download = `${username}_${uniqueId}.png`;
+      link.click();
+    } catch (error) {
+      console.error('QR Code generation error:', error);
+    }
   };
 
   // Handle add worker
@@ -167,7 +178,7 @@ const WorkerManagement = () => {
       toast.error('Username is required and cannot be empty');
       return;
     }
-    
+
     if (!trimmedSalary || trimmedSalary == '') {
       toast.error('Salary is required and cannot be empty');
       return;
@@ -182,7 +193,7 @@ const WorkerManagement = () => {
       toast.error('Department is required');
       return;
     }
-    
+
     if (!formData.rfid) {
       toast.error('Unique ID is required');
       return;
@@ -200,6 +211,7 @@ const WorkerManagement = () => {
         photo: formData.photo || ''
       });
 
+      generateQRCode(trimmedUsername, formData.rfid);
       setWorkers(prev => [...prev, newWorker]);
       setIsAddModalOpen(false);
       toast.success('Worker added successfully');
@@ -243,6 +255,10 @@ const WorkerManagement = () => {
         updateData.password = formData.password;
       }
 
+      if (formData.salary) {
+        updateData.salary = formData.salary;
+      }
+
       // Only include photo if a new file is selected
       if (formData.photo instanceof File) {
         updateData.photo = formData.photo;
@@ -261,6 +277,7 @@ const WorkerManagement = () => {
 
       setIsEditModalOpen(false);
       toast.success('Worker updated successfully');
+      loadData();
     } catch (error) {
       console.error('Update Error:', error);
       toast.error(error.message || 'Failed to update worker');
@@ -416,7 +433,7 @@ const WorkerManagement = () => {
               disabled
             />
           </div>
-          
+
           <div className="form-group">
             <label htmlFor="number" className="form-label">{"Salary (per month)"}</label>
             <input
@@ -527,6 +544,19 @@ const WorkerManagement = () => {
               name="username"
               className="form-input"
               value={formData.username}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="edit-username" className="form-label">Salary</label>
+            <input
+              type="number"
+              id="edit-username"
+              name="salary"
+              className="form-input"
+              value={formData.salary}
               onChange={handleChange}
               required
             />
