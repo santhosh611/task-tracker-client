@@ -10,12 +10,14 @@ import TopicManagement from '../../components/admin/TopicManager';
 import DepartmentManagement from '../../components/admin/DepartmentManagement';
 import FoodRequestManagement from '../../components/admin/FoodRequestManagement';
 import CustomTasks from '../../components/admin/CustomTasks';
+import SalaryManagement from '../../components/admin/SalaryManagement';
 
 const AdminDashboard = () => {
   return (
     <Routes>
       <Route index element={<Dashboard />} />
       <Route path="workers" element={<WorkerManagement />} />
+      <Route path="salary" element={<SalaryManagement />} />
       <Route path="tasks" element={<TaskManagement />} />
       <Route path="topics" element={<TopicManagement />} />
       <Route path="columns" element={<ColumnManagement />} />

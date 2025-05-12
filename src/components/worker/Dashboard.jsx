@@ -12,6 +12,7 @@ import CustomTaskForm from './CustomTaskForm';
 
 const Dashboard = () => {
   const { user } = useAuth();
+  console.log(user);
   const [isLoading, setIsLoading] = useState(true);
   const [tasks, setTasks] = useState([]);
   const [topics, setTopics] = useState([]);
@@ -27,17 +28,17 @@ const Dashboard = () => {
           getTopics({ subdomain: user.subdomain }),
           getColumns({ subdomain: user.subdomain })
         ]);
-        
+
         setTasks(tasksData);
-        
+
         // Filter topics for the worker's department
-        const filteredTopics = topicsData.filter(topic => 
+        const filteredTopics = topicsData.filter(topic =>
           topic.department === 'all' || topic.department === user.department
         );
         setTopics(filteredTopics);
-        
+
         // Filter columns for the worker's department
-        const filteredColumns = columnsData.filter(column => 
+        const filteredColumns = columnsData.filter(column =>
           column.department === 'all' || column.department === user.department
         );
         setColumns(filteredColumns);
@@ -48,15 +49,15 @@ const Dashboard = () => {
         setIsLoading(false);
       }
     };
-    
+
     loadDashboardData();
   }, [user]);
-  
+
   const handleTaskSubmit = (newTask) => {
     setTasks(prev => [newTask, ...prev]);
     toast.success('Task submitted successfully!');
   };
-  
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -64,20 +65,27 @@ const Dashboard = () => {
       </div>
     );
   }
-  
+
   return (
     <div>
-       <CustomTaskForm />
+      <Card title="Greetings!" className='mb-6'>
+        <p>
+          Hi {user.username}! Welcome to <strong>{user.subdomain}</strong>. <br />
+          Your base monthly salary is <strong>Rs.{user.salary}</strong>, and thanks to your efforts this month, your final salary is <strong>Rs.{user.finalSalary.toFixed(2)}</strong>.
+        </p>
+      </Card>
+
+      <CustomTaskForm />
       <h1 className="text-2xl font-bold mb-6">Worker Dashboard</h1>
-      
+
       <Card className="mb-6">
-        <TaskForm 
-          topics={topics} 
-          columns={columns} 
-          onTaskSubmit={handleTaskSubmit} 
+        <TaskForm
+          topics={topics}
+          columns={columns}
+          onTaskSubmit={handleTaskSubmit}
         />
       </Card>
-      
+
       <Card title="Your Recent Activity">
         {tasks.length === 0 ? (
           <p className="text-gray-500 py-4 text-center">
@@ -86,8 +94,8 @@ const Dashboard = () => {
         ) : (
           <div className="space-y-4">
             {tasks.slice(0, 5).map((task) => (
-              <div 
-                key={task._id} 
+              <div
+                key={task._id}
                 className="border-b border-gray-200 pb-4 last:border-b-0 last:pb-0"
               >
                 <div className="flex justify-between items-start">
@@ -103,14 +111,14 @@ const Dashboard = () => {
                     +{task.points}
                   </div>
                 </div>
-                
+
                 {task.topics && task.topics.length > 0 && (
                   <div className="mt-2">
                     <p className="text-xs text-gray-500 mb-1">Topics:</p>
                     <div className="flex flex-wrap gap-1">
                       {task.topics.map((topic, index) => (
-                        <span 
-                          key={index} 
+                        <span
+                          key={index}
                           className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
                         >
                           {topic.name}
@@ -124,7 +132,7 @@ const Dashboard = () => {
           </div>
         )}
       </Card>
-      
+
       <div className="mt-6">
         <Scoreboard department={user.department} />
       </div>

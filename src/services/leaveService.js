@@ -1,5 +1,6 @@
 import api from '../hooks/useAxios';
 import { getAuthToken } from '../utils/authUtils';
+
 export const getAllLeaves = async (leaveData) => {
   try {
     if (!leaveData.subdomain || leaveData.subdomain == 'main') {
@@ -78,10 +79,10 @@ export const createLeave = async (leaveData) => {
 };
 
 // Update leave status (admin)
-export const updateLeaveStatus = async (leaveId, status) => {
+export const updateLeaveStatus = async (leaveId, status, leaveData) => {
   try {
     const token = getAuthToken();
-    const response = await api.put(`/leaves/${leaveId}/status`, { status }, {
+    const response = await api.put(`/leaves/${leaveId}/status`, { status, leaveData }, {
       headers: { Authorization: `Bearer ${token}` }
     });
     return response.data;

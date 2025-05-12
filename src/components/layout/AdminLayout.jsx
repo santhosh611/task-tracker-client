@@ -12,7 +12,8 @@ import {
   FaPizzaSlice,
   FaClipboardList,
   FaRegCalendarCheck,
-  FaRegBell
+  FaRegBell,
+  FaDollarSign
 } from 'react-icons/fa';
 import { useAuth } from '../../hooks/useAuth';
 import { getAllLeaves } from '../../services/leaveService';
@@ -73,6 +74,11 @@ const AdminLayout = () => {
       to: '/admin/workers',
       icon: <FaUsers style={{ color: '#10B981' }} />, // Green for Workers
       label: 'Workers'
+    },
+    {
+      to: '/admin/salary',
+      icon: <FaDollarSign style={{ color: '#FBBF24' }} />, // Green for Workers
+      label: 'Salary'
     },
     {
       to: '/admin/attendance',

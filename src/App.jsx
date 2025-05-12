@@ -30,6 +30,7 @@ import appContext from './context/AppContext';
 import { useEffect, useState } from 'react';
 import AttendanceManagement from './components/admin/AttendanceManagement';
 import NotificationManagement from './components/admin/NotificationManagement';
+import SalaryManagement from './components/admin/SalaryManagement';
 
 function App() {
   const [subdomain, setSubdomain] = useState(null);
@@ -71,6 +72,7 @@ function App() {
           <Route path="/admin/*" element={<AdminLayout />}>
             <Route index element={<AdminDashboard />} />
             <Route path="workers" element={<WorkerManagement />} />
+            <Route path="salary" element={<SalaryManagement />} />
             <Route path="attendance" element={<AttendanceManagement />} />
             <Route path="departments" element={<DepartmentManagement />} />
             <Route path="columns" element={<ColumnManagement />} />

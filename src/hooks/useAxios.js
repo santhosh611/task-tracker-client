@@ -3,12 +3,10 @@ import axios from 'axios';
 import { useAuth } from './useAuth';
 
 const api = axios.create({
-  // baseURL: process.env.NODE_ENV == 'development' ? 'http://localhost:5000/api' : 'https://task-tracker-backend-2jqf.onrender.com/api',
-   baseURL: 'https://task-tracker-backend-1-r8os.onrender.com/api',
-  // baseURL: 'http://localhost:5000/api',
-  headers: { 
-    'Content-Type': 'application/json' 
-  }
+  baseURL: import.meta.env.VITE_API_URL,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 export const useAxios = () => {
   const { user, logout } = useAuth();
@@ -18,14 +16,14 @@ export const useAxios = () => {
       (config) => {
         // Prioritize context token, fallback to localStorage
         const token = user?.token || localStorage.getItem('token');
-        
+
         if (token) {
           config.headers.Authorization = `Bearer ${token}`;
           console.log('Request Token:', token);
         } else {
           console.warn('No token available for request');
         }
-        
+
         return config;
       },
       (error) => Promise.reject(error)
@@ -36,18 +34,18 @@ export const useAxios = () => {
       (error) => {
         // Log detailed error information
         console.error('API Error:', error);
-        
+
         if (error.response) {
           console.error('Error Response:', error.response.data);
           console.error('Error Status:', error.response.status);
-          
+
           // Automatically logout on 401 (Unauthorized) errors
           if (error.response.status === 401) {
             console.warn('Unauthorized: Logging out');
             logout();
           }
         }
-        
+
         return Promise.reject(error);
       }
     );

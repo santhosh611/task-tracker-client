@@ -2,6 +2,29 @@ import api from '../hooks/useAxios';
 import { getAuthToken } from '../utils/authUtils';
 import uploadUtils from '../utils/uploadUtils';
 
+export const getUniqueId = async () => {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      console.warn('No auth token available');
+      return [];
+    }
+
+    const response = await api.get('/workers/generate-id', {
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    console.log(response.data);
+
+    return response.data || [];
+  } catch (error) {
+    console.error('Workers fetch error:', error);
+    return [];
+  }
+};
+
 export const createWorker = async (workerData) => {
   try {
     console.log('Worker data:', workerData);
@@ -20,19 +43,18 @@ export const createWorker = async (workerData) => {
     if (!workerData.password || workerData.password.trim() === '') {
       throw new Error('Password is required and cannot be empty');
     }
+    if (!workerData.salary || workerData.salary.trim() === '') {
+      throw new Error('Salary is required and cannot be empty');
+    }
     if (!workerData.department) {
       throw new Error('Department is required');
     }
 
     const urlResponse = await uploadUtils(workerData.photo);
-
-    console.log('urlResponse: ', urlResponse);
     workerData.photo = urlResponse;
-    console.log('workerData: ', workerData);
-    console.log(token);
 
     const response = await api.post('/workers', workerData, {
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       }
@@ -43,6 +65,7 @@ export const createWorker = async (workerData) => {
     throw error.response?.data || new Error('Failed to create worker');
   }
 };
+
 export const getWorkers = async (subdomain) => {
   try {
     const token = getAuthToken();
@@ -50,11 +73,11 @@ export const getWorkers = async (subdomain) => {
       console.warn('No auth token available');
       return [];
     }
-    
+
     const response = await api.post('/workers/all', subdomain, {
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}` 
+        'Authorization': `Bearer ${token}`
       }
     });
     return response.data || [];
@@ -63,11 +86,12 @@ export const getWorkers = async (subdomain) => {
     return [];
   }
 };
+
 export const getPublicWorkers = async (subdomain) => {
   try {
     const token = getAuthToken();
     const response = await api.post('/workers/public', subdomain, {
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       }
@@ -83,14 +107,14 @@ export const updateWorker = async (id, workerData) => {
   try {
     const token = getAuthToken();
     const formData = new FormData();
-    
+
     if (workerData.photo) {
       const urlResponse = await uploadUtils(workerData.photo);
       workerData.photo = urlResponse;
     }
 
     const response = await api.put(`/workers/${id}`, workerData, {
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       }

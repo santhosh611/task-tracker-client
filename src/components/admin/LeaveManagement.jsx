@@ -20,7 +20,6 @@ const LeaveManagement = () => {
     const fetchLeaves = async () => {
       try {
         const leavesData = await getAllLeaves({ subdomain });
-        console.log(leavesData);
         setLeaves(leavesData);
         setFilteredLeaves(leavesData);
         setLoading(false);
@@ -56,11 +55,11 @@ const LeaveManagement = () => {
     setFilteredLeaves(result);
   };
 
-  const handleReview = async (leaveId, status) => {
+  const handleReview = async (leaveId, status, leaveData) => {
     setProcessing(prev => ({ ...prev, [leaveId]: true }));
 
     try {
-      await updateLeaveStatus(leaveId, status);
+      await updateLeaveStatus(leaveId, status, leaveData);
       setLeaves(leaves.map(leave =>
         leave._id === leaveId ? { ...leave, status } : leave
       ));
@@ -110,7 +109,7 @@ const LeaveManagement = () => {
       {leave.status === 'Pending' && (
         <div className="mt-4 flex space-x-2">
           <button
-            onClick={() => handleReview(leave._id, 'Approved')}
+            onClick={() => handleReview(leave._id, 'Approved',leave)}
             disabled={processing[leave._id]}
             className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
           >

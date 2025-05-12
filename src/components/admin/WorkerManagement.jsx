@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { toast } from 'react-toastify';
 import { FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
-import { getWorkers, createWorker, updateWorker, deleteWorker } from '../../services/workerService';
+import { getWorkers, createWorker, updateWorker, deleteWorker, getUniqueId } from '../../services/workerService';
 import { getDepartments } from '../../services/departmentService';
 import Card from '../common/Card';
 import Button from '../common/Button';
@@ -31,7 +31,8 @@ const WorkerManagement = () => {
   const [formData, setFormData] = useState({
     name: '',
     username: '',
-    email: '',
+    rfid: '',
+    salary: 0,
     password: '',
     confirmPassword: '',
     department: '',
@@ -74,6 +75,18 @@ const WorkerManagement = () => {
     loadData();
   }, []);
 
+  const getWorkerId = async () => {
+    await getUniqueId()
+      .then((response) => {
+        setFormData(prev => ({ ...prev, rfid: response.rfid }));
+      })
+      .catch((e) => console.log(e.message));
+  }
+
+  useEffect(() => {
+    getWorkerId();
+  }, []);
+
   // Handle form input change
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -91,14 +104,15 @@ const WorkerManagement = () => {
 
   // Open add worker modal
   const openAddModal = () => {
-    setFormData({
+    setFormData(prev => ({
+      ...prev, 
       name: '',
       username: '',
-      email: '',
       password: '',
       department: departments.length > 0 ? departments[0]._id : '', // Ensure first department is selected
       photo: ''
-    });
+    }));
+    getWorkerId();
     setIsAddModalOpen(true);
   };
 
@@ -118,6 +132,7 @@ const WorkerManagement = () => {
       department: departmentId, // Use the department ID
       photo: worker.photo || '',
       password: '',
+      salary: 0,
       confirmPassword: ''
     });
     setIsEditModalOpen(true);
@@ -134,8 +149,8 @@ const WorkerManagement = () => {
 
     const trimmedName = formData.name.trim();
     const trimmedUsername = formData.username.trim();
-    const trimmedEmail = formData.email.trim();
     const trimmedPassword = formData.password.trim();
+    const trimmedSalary = formData.salary.trim();
 
     // Validation checks
     if (!subdomain || subdomain == 'main') {
@@ -152,9 +167,9 @@ const WorkerManagement = () => {
       toast.error('Username is required and cannot be empty');
       return;
     }
-
-    if (!trimmedEmail) {
-      toast.error('Email is required and cannot be empty');
+    
+    if (!trimmedSalary || trimmedSalary == '') {
+      toast.error('Salary is required and cannot be empty');
       return;
     }
 
@@ -167,13 +182,19 @@ const WorkerManagement = () => {
       toast.error('Department is required');
       return;
     }
+    
+    if (!formData.rfid) {
+      toast.error('Unique ID is required');
+      return;
+    }
 
     try {
       const newWorker = await createWorker({
         ...formData,
         name: trimmedName,
         username: trimmedUsername,
-        email: trimmedEmail,
+        rfid: formData.rfid,
+        salary: trimmedSalary,
         subdomain,
         password: trimmedPassword,
         photo: formData.photo || ''
@@ -266,10 +287,10 @@ const WorkerManagement = () => {
         <div className="flex items-center">
           {record?.photo && (
             <img
-            src={record.photo 
-              ? record.photo 
-              : `https://ui-avatars.com/api/?name=${encodeURIComponent(record.name)}`}
-            
+              src={record.photo
+                ? record.photo
+                : `https://ui-avatars.com/api/?name=${encodeURIComponent(record.name)}`}
+
               alt="Worker"
               className="w-8 h-8 rounded-full mr-2"
             />
@@ -277,6 +298,10 @@ const WorkerManagement = () => {
           {record?.name || 'Unknown'}
         </div>
       )
+    },
+    {
+      header: 'Salary',
+      accessor: 'salary'
     },
     {
       header: 'Employee ID',
@@ -379,13 +404,27 @@ const WorkerManagement = () => {
           </div>
 
           <div className="form-group">
-            <label htmlFor="email" className="form-label">Email</label>
+            <label htmlFor="text" className="form-label">Unique ID</label>
             <input
               type="text"
-              id="email"
-              name="email"
+              id="rfid"
+              name="rfid"
               className="form-input"
-              value={formData.email}
+              value={formData.rfid}
+              onChange={handleChange}
+              required
+              disabled
+            />
+          </div>
+          
+          <div className="form-group">
+            <label htmlFor="number" className="form-label">{"Salary (per month)"}</label>
+            <input
+              type="number"
+              id="salary"
+              name="salary"
+              className="form-input"
+              value={formData.salary}
               onChange={handleChange}
               required
             />
@@ -525,7 +564,7 @@ const WorkerManagement = () => {
             <div className="flex items-center">
               {selectedWorker?.photo && (
                 <img
-                src={selectedWorker.photo}
+                  src={selectedWorker.photo}
 
                   alt="Current Photo"
                   className="w-20 h-20 rounded-full object-cover mr-4"
